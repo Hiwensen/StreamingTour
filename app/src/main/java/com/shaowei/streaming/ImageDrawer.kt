@@ -2,9 +2,13 @@ package com.shaowei.streaming
 
 import android.content.Context
 import android.graphics.*
+import android.os.Build
 import android.view.SurfaceHolder
 import android.view.SurfaceView
+import android.view.TextureView
+import android.view.TextureView.SurfaceTextureListener
 import android.widget.ImageView
+import androidx.annotation.RequiresApi
 import java.io.File
 
 class ImageDrawer(private val context: Context) {
@@ -51,10 +55,37 @@ class ImageDrawer(private val context: Context) {
             }
 
         })
-
     }
 
-    fun withCustomSurfaceView(customSurfaceView: CustomSurfaceView) {
+    @RequiresApi(Build.VERSION_CODES.JELLY_BEAN)
+    fun withTextureView(textureView: TextureView) {
+        val matrix = Matrix()
+
+        textureView.surfaceTextureListener = object : SurfaceTextureListener{
+            override fun onSurfaceTextureSizeChanged(p0: SurfaceTexture?, p1: Int, p2: Int) {
+
+            }
+
+            override fun onSurfaceTextureUpdated(p0: SurfaceTexture?) {
+            }
+
+            override fun onSurfaceTextureDestroyed(p0: SurfaceTexture?): Boolean {
+                return true
+            }
+
+            override fun onSurfaceTextureAvailable(surfaceTexture: SurfaceTexture, p1: Int, p2: Int) {
+                val paint = Paint()
+                paint.isAntiAlias = true
+                paint.style = Paint.Style.STROKE
+                paint.flags = Paint.ANTI_ALIAS_FLAG
+
+                val canvas = textureView.lockCanvas()
+                matrix.setScale(0.5f,0.5f)
+                canvas.drawBitmap(getAssetsBitmap(), matrix, paint)
+
+                textureView.unlockCanvasAndPost(canvas)
+            }
+        }
 
     }
 

@@ -39,5 +39,13 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"/>
 
+    <TextureView
+        android:id="@+id/texture_view"
+        android:layout_width="100dp"
+        android:layout_height="150dp"
+        android:layout_marginLeft="10dp"
+        app:layout_constraintLeft_toRightOf="@id/custom_surface_view"
+        app:layout_constraintTop_toTopOf="@id/custom_surface_view"
+        app:layout_constraintBottom_toBottomOf="@id/custom_surface_view"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
