@@ -1,38 +1,23 @@
 package com.shaowei.streaming
 
-import android.os.Build
+import android.content.Intent
 import android.os.Bundle
-import android.view.SurfaceView
-import android.view.TextureView
-import android.widget.ImageView
+import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
+import com.shaowei.streaming.audio.AudioActivity
+import com.shaowei.streaming.image.ImageActivity
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var mImageView: ImageView
-    private lateinit var mCustomView: CustomView
-    private lateinit var mSurfaceView: SurfaceView
-    private lateinit var mCustomSurfaceView: CustomSurfaceView
-    private lateinit var mTextureView: TextureView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        mImageView = findViewById(R.id.image_view)
-        mCustomView = findViewById(R.id.custom_view)
-        mSurfaceView = findViewById(R.id.surface_view)
-        mCustomSurfaceView = findViewById(R.id.custom_surface_view)
-        mTextureView = findViewById(R.id.texture_view)
-        drawImage()
-    }
+        findViewById<Button>(R.id.image_playground).setOnClickListener{
+            startActivity(Intent(this, ImageActivity::class.java))
+        }
 
-    private fun drawImage() {
-        val imageDrawer = ImageDrawer(this)
-        imageDrawer.withImageView(mImageView)
-        imageDrawer.withCustomView(mCustomView)
-        imageDrawer.withSurfaceView(mSurfaceView)
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            imageDrawer.withTextureView(mTextureView)
+        findViewById<Button>(R.id.audio_playground).setOnClickListener{
+            startActivity(Intent(this, AudioActivity::class.java))
         }
     }
 

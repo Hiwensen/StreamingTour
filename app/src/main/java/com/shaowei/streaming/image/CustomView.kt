@@ -1,4 +1,4 @@
-package com.shaowei.streaming
+package com.shaowei.streaming.image
 
 import android.content.Context
 import android.graphics.Bitmap

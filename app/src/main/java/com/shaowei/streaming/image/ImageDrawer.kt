@@ -1,4 +1,4 @@
-package com.shaowei.streaming
+package com.shaowei.streaming.image
 
 import android.content.Context
 import android.graphics.*
@@ -9,6 +9,7 @@ import android.view.TextureView
 import android.view.TextureView.SurfaceTextureListener
 import android.widget.ImageView
 import androidx.annotation.RequiresApi
+import com.shaowei.streaming.image.CustomView
 import java.io.File
 
 class ImageDrawer(private val context: Context) {
