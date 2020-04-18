@@ -9,7 +9,6 @@ import android.view.TextureView
 import android.view.TextureView.SurfaceTextureListener
 import android.widget.ImageView
 import androidx.annotation.RequiresApi
-import com.shaowei.streaming.image.CustomView
 import java.io.File
 
 class ImageDrawer(private val context: Context) {
@@ -87,7 +86,6 @@ class ImageDrawer(private val context: Context) {
                 textureView.unlockCanvasAndPost(canvas)
             }
         }
-
     }
 
     private fun getAssetsBitmap(): Bitmap {

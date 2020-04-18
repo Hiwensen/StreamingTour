@@ -48,4 +48,13 @@
         app:layout_constraintTop_toTopOf="@id/custom_surface_view"
         app:layout_constraintBottom_toBottomOf="@id/custom_surface_view"/>
 
+    <com.shaowei.streaming.image.CustomTextureView
+        android:id="@+id/custom_texture_view"
+        android:layout_width="100dp"
+        android:layout_height="150dp"
+        android:layout_marginRight="10dp"
+        app:layout_constraintRight_toLeftOf="@id/custom_surface_view"
+        app:layout_constraintTop_toTopOf="@id/custom_surface_view"
+        app:layout_constraintBottom_toBottomOf="@id/custom_surface_view"/>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
