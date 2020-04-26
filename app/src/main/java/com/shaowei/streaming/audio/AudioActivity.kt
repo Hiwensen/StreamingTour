@@ -2,31 +2,34 @@ package com.shaowei.streaming.audio
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.media.AudioFormat
-import android.media.AudioRecord
-import android.media.MediaRecorder
+import android.media.*
 import android.os.Bundle
-import android.os.Environment
-import android.view.View
+import android.util.Log
 import android.widget.Button
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.shaowei.streaming.R
 import java.io.File
+import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
+import java.util.concurrent.Executors
+import kotlin.math.max
 
 private const val REQUEST_RECORD_AUDIO_PERMISSION = 200
 
 class AudioActivity : AppCompatActivity() {
-    private lateinit var mAudioRecorder: AudioRecord
+    private val TAG = AudioActivity::class.java.simpleName
+
+    private lateinit var mAudioRecord: AudioRecord
     private lateinit var mFileOutputStream: FileOutputStream
     private lateinit var mAudioFile: File
     private val mBuffer = ByteArray(2048)
-    private val mExecutorService = java.util.concurrent.Executors.newSingleThreadExecutor()
-
+    private val mExecutorService = Executors.newSingleThreadExecutor()
 
     private var mIsRecording = false
+    private var mIsPlaying = false
     private var m3GPFileName: String = ""
     private var mPCMFileName: String = ""
 
@@ -34,9 +37,6 @@ class AudioActivity : AppCompatActivity() {
     private val mMediaPlayerPlayground = MediaPlayerPlayground()
     private var mStartRecording = true
     private var mStartPlaying = true
-
-    private val mAudioRecordPlayground = AudioRecordPlayground()
-    private val mAudioTrackPlayerPlayground = AudioTrackPlayground()
 
     private lateinit var mMediaRecorderRecord: Button
     private lateinit var mMediaPlayerPlay: Button
@@ -85,39 +85,27 @@ class AudioActivity : AppCompatActivity() {
 
         mAudioRecordRecord = findViewById(R.id.audio_record_record)
         mAudioRecordRecord.setOnClickListener {
-
-            if (mAudioRecordPlayground.mIsRecording) {
+            if (mIsRecording) {
+                mIsRecording = false
                 mAudioRecordRecord.text = "audiorecord start record"
-                mAudioRecordPlayground.stopRecorder()
-                mAudioRecordPlayground.mIsRecording = false
             } else {
+                mIsRecording = true
+                mExecutorService.submit {
+                    if (!startAudioRecord(File(mPCMFileName))) {
+                        recordFail()
+                    }
+                }
                 mAudioRecordRecord.text = "audiorecord stop record"
-                mAudioRecordPlayground.startRecord(File(mPCMFileName))
-                mAudioRecordPlayground.mIsRecording = true
             }
         }
 
-        mAudioRecordRecord.setOnClickListener(View.OnClickListener {
-            if (mIsRecording) {
-                mAudioRecordRecord.setText("audiorecord start record")
-                mIsRecording = false
-            } else {
-                mAudioRecordRecord.setText("audiorecord stop record")
-                mIsRecording = true
-                mExecutorService.submit(Runnable {
-                    if (!startRecorder()) {
-                        recoderFail()
-                    }
-                })
-            }
-        })
-
-
         mAudioTrackPlay = findViewById(R.id.audio_track_play)
         mAudioTrackPlay.setOnClickListener {
-            val playResult = mAudioTrackPlayerPlayground.play(File(mPCMFileName))
-            if (!playResult) {
-                mAudioTrackPlay.text = "audiotrack play fail"
+            if (!mIsPlaying) {
+                mIsPlaying = true
+                mExecutorService.submit {
+                    audioTrackPlay(File(mPCMFileName))
+                }
             }
         }
     }
@@ -148,64 +136,123 @@ class AudioActivity : AppCompatActivity() {
         mMediaPlayerPlayground.stopPlaying()
     }
 
-    private fun startRecorder(): Boolean {
+    private fun startAudioRecord(audioFile: File): Boolean {
         return try {
-            mAudioFile = File(
-                Environment.getExternalStorageDirectory().absolutePath + "/RecorderTest/" +
-                        System.currentTimeMillis() + ".pcm"
-            )
-            mAudioFile.getParentFile().mkdirs()
+            mAudioFile = File(mPCMFileName)
+            mAudioFile.parentFile.mkdirs()
             mAudioFile.createNewFile()
             mFileOutputStream = FileOutputStream(mAudioFile)
+
+            audioFile.parentFile?.mkdirs()
+            audioFile.createNewFile()
+            mFileOutputStream = FileOutputStream(audioFile)
             val audioSource = MediaRecorder.AudioSource.MIC
             val sampleRate = 44100
             val channelConfig = AudioFormat.CHANNEL_IN_MONO
             val audioFormat = AudioFormat.ENCODING_PCM_16BIT
             val minBufferSize =
                 AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat)
-            mAudioRecorder = AudioRecord(
+            mAudioRecord = AudioRecord(
                 audioSource, sampleRate, channelConfig,
-                audioFormat, Math.max(minBufferSize, 2048)
+                audioFormat, max(minBufferSize, 2048)
             )
-            mAudioRecorder.startRecording()
+            mAudioRecord.startRecording()
             while (mIsRecording) {
-                val read: Int = mAudioRecorder.read(mBuffer, 0, 2048)
+                val read = mAudioRecord.read(mBuffer, 0, 2048)
                 if (read > 0) {
                     mFileOutputStream.write(mBuffer, 0, read)
                 } else {
                     return false
                 }
             }
-            stopRecorder()
+            stopAudioRecord()
         } catch (e: IOException) {
-            e.printStackTrace()
+            Log.e(TAG, e.toString())
             false
-        } catch (e: RuntimeException) {
-            e.printStackTrace()
+        } catch (e: java.lang.RuntimeException) {
+            Log.e(TAG, e.toString())
             false
         } finally {
-            mAudioRecorder.release()
+            mAudioRecord.release()
         }
     }
 
-    private fun stopRecorder(): Boolean {
+    private fun stopAudioRecord(): Boolean {
         try {
-            mAudioRecorder.stop()
-            mAudioRecorder.release()
+            mIsRecording = false
+            mAudioRecord.stop()
+            mAudioRecord.release()
             mFileOutputStream.close()
 
-            runOnUiThread { mAudioRecordRecord.text = "audiorecord stop record" }
-
         } catch (e: IOException) {
-            e.printStackTrace()
+            Log.e(TAG, e.toString())
             return false
         }
         return true
     }
 
-    private fun recoderFail() {
+    private fun recordFail() {
         mIsRecording = false
-        runOnUiThread { mAudioRecordRecord.text = "audiorecord record fail" }
+        runOnUiThread {
+            Toast.makeText(this, "record fail", Toast.LENGTH_SHORT).show()
+        }
     }
 
+    private fun audioTrackPlay(audioFile: File) {
+        val streamType = AudioManager.STREAM_MUSIC
+        val sampleRate = 44100
+        val channelConfig = AudioFormat.CHANNEL_OUT_MONO
+        val audioFormat = AudioFormat.ENCODING_PCM_16BIT
+        val mode = AudioTrack.MODE_STREAM
+
+        val minBufferSize = AudioTrack.getMinBufferSize(sampleRate, channelConfig, audioFormat)
+
+        val audioTrack = AudioTrack(
+            streamType, sampleRate, channelConfig, audioFormat,
+            max(minBufferSize, 2048), mode
+        )
+
+        var mFileInputStream: FileInputStream? = null
+        try {
+            mFileInputStream = FileInputStream(audioFile)
+            var read: Int
+            audioTrack.play()
+            while (mFileInputStream.read(mBuffer).also { read = it } > 0) {
+                val ret = audioTrack.write(mBuffer, 0, read)
+                when (ret) {
+                    AudioTrack.ERROR_BAD_VALUE, AudioTrack.ERROR_INVALID_OPERATION, AudioManager.ERROR_DEAD_OBJECT -> audioTrackPlayFail()
+                    else -> {
+                    }
+                }
+            }
+        } catch (e: RuntimeException) {
+            Log.e(TAG, e.toString())
+            audioTrackPlayFail()
+        } catch (e: IOException) {
+            Log.e(TAG, e.toString())
+            audioTrackPlayFail()
+        } finally {
+            mIsPlaying = false
+            mFileInputStream?.let { closeQuietly(it) }
+            audioTrack.stop()
+            audioTrack.release()
+        }
+    }
+
+    private fun closeQuietly(mFileInputStream: FileInputStream) {
+        try {
+            mFileInputStream.close()
+        } catch (e: IOException) {
+            Log.e(TAG, e.toString())
+        }
+    }
+
+    private fun audioTrackPlayFail() {
+        runOnUiThread { Toast.makeText(this, "play fail", Toast.LENGTH_SHORT).show() }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        mExecutorService.shutdownNow()
+    }
 }
