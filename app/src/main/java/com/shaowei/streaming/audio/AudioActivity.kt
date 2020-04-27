@@ -3,10 +3,12 @@ package com.shaowei.streaming.audio
 import android.Manifest
 import android.content.pm.PackageManager
 import android.media.*
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.shaowei.streaming.R
@@ -24,7 +26,6 @@ class AudioActivity : AppCompatActivity() {
 
     private lateinit var mAudioRecord: AudioRecord
     private lateinit var mFileOutputStream: FileOutputStream
-    private lateinit var mAudioFile: File
     private val mBuffer = ByteArray(2048)
     private val mExecutorService = Executors.newSingleThreadExecutor()
 
@@ -47,6 +48,7 @@ class AudioActivity : AppCompatActivity() {
     private var permissionToRecordAccepted = false
     private var permissions: Array<String> = arrayOf(Manifest.permission.RECORD_AUDIO)
 
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     override fun onCreate(icicle: Bundle?) {
         super.onCreate(icicle)
         setContentView(R.layout.activity_audio)
@@ -61,6 +63,7 @@ class AudioActivity : AppCompatActivity() {
         initView()
     }
 
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     private fun initView() {
         // Record to the external cache directory for visibility
         mMediaRecorderRecord = findViewById(R.id.media_recorder_record)
@@ -138,11 +141,6 @@ class AudioActivity : AppCompatActivity() {
 
     private fun startAudioRecord(audioFile: File): Boolean {
         return try {
-            mAudioFile = File(mPCMFileName)
-            mAudioFile.parentFile.mkdirs()
-            mAudioFile.createNewFile()
-            mFileOutputStream = FileOutputStream(mAudioFile)
-
             audioFile.parentFile?.mkdirs()
             audioFile.createNewFile()
             mFileOutputStream = FileOutputStream(audioFile)
@@ -183,7 +181,6 @@ class AudioActivity : AppCompatActivity() {
             mAudioRecord.stop()
             mAudioRecord.release()
             mFileOutputStream.close()
-
         } catch (e: IOException) {
             Log.e(TAG, e.toString())
             return false
@@ -198,28 +195,40 @@ class AudioActivity : AppCompatActivity() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     private fun audioTrackPlay(audioFile: File) {
         val streamType = AudioManager.STREAM_MUSIC
         val sampleRate = 44100
         val channelConfig = AudioFormat.CHANNEL_OUT_MONO
         val audioFormat = AudioFormat.ENCODING_PCM_16BIT
         val mode = AudioTrack.MODE_STREAM
-
         val minBufferSize = AudioTrack.getMinBufferSize(sampleRate, channelConfig, audioFormat)
 
+//        val audioTrackOld = AudioTrack(
+//            streamType, sampleRate, channelConfig, audioFormat,
+//            max(minBufferSize, 2048), mode
+//        )
+
         val audioTrack = AudioTrack(
-            streamType, sampleRate, channelConfig, audioFormat,
-            max(minBufferSize, 2048), mode
+            AudioAttributes.Builder()
+                .setLegacyStreamType(streamType)
+                .build(),
+            AudioFormat.Builder()
+                .setChannelMask(channelConfig)
+                .setEncoding(audioFormat)
+                .setSampleRate(sampleRate)
+                .build(),
+            max(minBufferSize, 2048),
+            mode, AudioManager.AUDIO_SESSION_ID_GENERATE
         )
 
         var mFileInputStream: FileInputStream? = null
         try {
             mFileInputStream = FileInputStream(audioFile)
-            var read: Int
             audioTrack.play()
+            var read: Int
             while (mFileInputStream.read(mBuffer).also { read = it } > 0) {
-                val ret = audioTrack.write(mBuffer, 0, read)
-                when (ret) {
+                when (audioTrack.write(mBuffer, 0, read)) {
                     AudioTrack.ERROR_BAD_VALUE, AudioTrack.ERROR_INVALID_OPERATION, AudioManager.ERROR_DEAD_OBJECT -> audioTrackPlayFail()
                     else -> {
                     }
