@@ -38,4 +38,12 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="@id/audio_record_record"/>
 
+    <Button
+        android:id="@+id/pcm_to_wav"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="pcm to wav"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/audio_track_play"/>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

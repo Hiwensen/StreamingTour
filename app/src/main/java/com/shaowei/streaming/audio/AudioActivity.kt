@@ -33,6 +33,7 @@ class AudioActivity : AppCompatActivity() {
     private var mIsPlaying = false
     private var m3GPFileName: String = ""
     private var mPCMFileName: String = ""
+    private var mWAVFileName: String = ""
 
     private val mMediaRecorderPlayground = MediaRecorderPlayground()
     private val mMediaPlayerPlayground = MediaPlayerPlayground()
@@ -43,6 +44,9 @@ class AudioActivity : AppCompatActivity() {
     private lateinit var mMediaPlayerPlay: Button
     private lateinit var mAudioRecordRecord: Button
     private lateinit var mAudioTrackPlay: Button
+
+    private val mSampleRate = 44100
+    private val mAudioFormat = AudioFormat.ENCODING_PCM_16BIT
 
     // Requesting permission to RECORD_AUDIO
     private var permissionToRecordAccepted = false
@@ -55,6 +59,7 @@ class AudioActivity : AppCompatActivity() {
 
         m3GPFileName = "${externalCacheDir?.absolutePath}/audiorecordtest.3gp"
         mPCMFileName = "${externalCacheDir?.absolutePath}/RecorderTest/audiorecordtest.pcm"
+        mWAVFileName = "${externalCacheDir?.absolutePath}/RecorderTest/audiorecordtest.wav"
 
         ActivityCompat.requestPermissions(
             this, permissions,
@@ -111,6 +116,18 @@ class AudioActivity : AppCompatActivity() {
                 }
             }
         }
+
+        val pemToWav = PcmToWavUtil(mSampleRate, AudioFormat.CHANNEL_IN_MONO, mAudioFormat)
+        findViewById<Button>(R.id.pcm_to_wav).setOnClickListener {
+            val wavFile = File(mWAVFileName)
+            if (!wavFile.mkdirs()) {
+                Log.e(TAG, "wavFile Directory not created")
+            }
+            if (wavFile.exists()) {
+                wavFile.delete()
+            }
+            pemToWav.pcmToWav(mPCMFileName, mWAVFileName)
+        }
     }
 
     override fun onRequestPermissionsResult(
@@ -145,14 +162,12 @@ class AudioActivity : AppCompatActivity() {
             audioFile.createNewFile()
             mFileOutputStream = FileOutputStream(audioFile)
             val audioSource = MediaRecorder.AudioSource.MIC
-            val sampleRate = 44100
             val channelConfig = AudioFormat.CHANNEL_IN_MONO
-            val audioFormat = AudioFormat.ENCODING_PCM_16BIT
             val minBufferSize =
-                AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat)
+                AudioRecord.getMinBufferSize(mSampleRate, channelConfig, mAudioFormat)
             mAudioRecord = AudioRecord(
-                audioSource, sampleRate, channelConfig,
-                audioFormat, max(minBufferSize, 2048)
+                audioSource, mSampleRate, channelConfig,
+                mAudioFormat, max(minBufferSize, 2048)
             )
             mAudioRecord.startRecording()
             while (mIsRecording) {
@@ -198,16 +213,9 @@ class AudioActivity : AppCompatActivity() {
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     private fun audioTrackPlay(audioFile: File) {
         val streamType = AudioManager.STREAM_MUSIC
-        val sampleRate = 44100
         val channelConfig = AudioFormat.CHANNEL_OUT_MONO
-        val audioFormat = AudioFormat.ENCODING_PCM_16BIT
         val mode = AudioTrack.MODE_STREAM
-        val minBufferSize = AudioTrack.getMinBufferSize(sampleRate, channelConfig, audioFormat)
-
-//        val audioTrackOld = AudioTrack(
-//            streamType, sampleRate, channelConfig, audioFormat,
-//            max(minBufferSize, 2048), mode
-//        )
+        val minBufferSize = AudioTrack.getMinBufferSize(mSampleRate, channelConfig, mAudioFormat)
 
         val audioTrack = AudioTrack(
             AudioAttributes.Builder()
@@ -215,8 +223,8 @@ class AudioActivity : AppCompatActivity() {
                 .build(),
             AudioFormat.Builder()
                 .setChannelMask(channelConfig)
-                .setEncoding(audioFormat)
-                .setSampleRate(sampleRate)
+                .setEncoding(mAudioFormat)
+                .setSampleRate(mSampleRate)
                 .build(),
             max(minBufferSize, 2048),
             mode, AudioManager.AUDIO_SESSION_ID_GENERATE
