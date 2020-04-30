@@ -57,7 +57,9 @@ class AudioActivity : AppCompatActivity() {
         super.onCreate(icicle)
         setContentView(R.layout.activity_audio)
 
-        m3GPFileName = "${externalCacheDir?.absolutePath}/audiorecordtest.3gp"
+        m3GPFileName = "${externalCacheDir?.absolutePath}/audiotest.3gp"
+
+        //path in device: sdcard/Android/data/packageName/cache/RecorderTest/audiorecordtest.pcm
         mPCMFileName = "${externalCacheDir?.absolutePath}/RecorderTest/audiorecordtest.pcm"
         mWAVFileName = "${externalCacheDir?.absolutePath}/RecorderTest/audiorecordtest.wav"
 
@@ -119,14 +121,12 @@ class AudioActivity : AppCompatActivity() {
 
         val pemToWav = PcmToWavUtil(mSampleRate, AudioFormat.CHANNEL_IN_MONO, mAudioFormat)
         findViewById<Button>(R.id.pcm_to_wav).setOnClickListener {
+            val pcmFile = File(mPCMFileName)
             val wavFile = File(mWAVFileName)
-            if (!wavFile.mkdirs()) {
-                Log.e(TAG, "wavFile Directory not created")
-            }
             if (wavFile.exists()) {
                 wavFile.delete()
             }
-            pemToWav.pcmToWav(mPCMFileName, mWAVFileName)
+            pemToWav.pcmToWav(pcmFile.absolutePath, wavFile.absolutePath)
         }
     }
 
