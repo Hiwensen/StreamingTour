@@ -57,7 +57,7 @@ class AudioActivity : AppCompatActivity() {
         super.onCreate(icicle)
         setContentView(R.layout.activity_audio)
 
-        m3GPFileName = "${externalCacheDir?.absolutePath}/audiotest.3gp"
+        m3GPFileName = "${externalCacheDir?.absolutePath}/RecorderTest/audiotest.3gp"
 
         //path in device: sdcard/Android/data/packageName/cache/RecorderTest/audiorecordtest.pcm
         mPCMFileName = "${externalCacheDir?.absolutePath}/RecorderTest/audiorecordtest.pcm"
@@ -217,18 +217,18 @@ class AudioActivity : AppCompatActivity() {
         val mode = AudioTrack.MODE_STREAM
         val minBufferSize = AudioTrack.getMinBufferSize(mSampleRate, channelConfig, mAudioFormat)
 
-        val audioTrack = AudioTrack(
-            AudioAttributes.Builder()
-                .setLegacyStreamType(streamType)
-                .build(),
-            AudioFormat.Builder()
-                .setChannelMask(channelConfig)
-                .setEncoding(mAudioFormat)
-                .setSampleRate(mSampleRate)
-                .build(),
-            max(minBufferSize, 2048),
-            mode, AudioManager.AUDIO_SESSION_ID_GENERATE
-        )
+        val attributesBuilder = AudioAttributes.Builder()
+            .setLegacyStreamType(streamType)
+            .build()
+        val formatBuilder = AudioFormat.Builder()
+            .setChannelMask(channelConfig)
+            .setEncoding(mAudioFormat)
+            .setSampleRate(mSampleRate)
+            .build()
+        val bufferSize = max(minBufferSize, 2048)
+        val sessionId = AudioManager.AUDIO_SESSION_ID_GENERATE
+
+        val audioTrack = AudioTrack(attributesBuilder, formatBuilder, bufferSize, mode, sessionId)
 
         var mFileInputStream: FileInputStream? = null
         try {
@@ -239,6 +239,7 @@ class AudioActivity : AppCompatActivity() {
                 when (audioTrack.write(mBuffer, 0, read)) {
                     AudioTrack.ERROR_BAD_VALUE, AudioTrack.ERROR_INVALID_OPERATION, AudioManager.ERROR_DEAD_OBJECT -> audioTrackPlayFail()
                     else -> {
+                        //play success
                     }
                 }
             }
