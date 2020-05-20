@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import com.shaowei.streaming.audio.AudioActivity
+import com.shaowei.streaming.camera.LiveCameraActivity
 import com.shaowei.streaming.image.ImageActivity
 
 class MainActivity : AppCompatActivity() {
@@ -12,12 +13,17 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        findViewById<Button>(R.id.image_playground).setOnClickListener{
+        findViewById<Button>(R.id.image_playground).setOnClickListener {
             startActivity(Intent(this, ImageActivity::class.java))
         }
 
-        findViewById<Button>(R.id.audio_playground).setOnClickListener{
+        findViewById<Button>(R.id.audio_playground).setOnClickListener {
             startActivity(Intent(this, AudioActivity::class.java))
+        }
+
+        findViewById<Button>(R.id.camera_playground).setOnClickListener {
+//            startActivity(Intent(this, CameraActivity::class.java))
+            startActivity(Intent(this, LiveCameraActivity::class.java))
         }
     }
 

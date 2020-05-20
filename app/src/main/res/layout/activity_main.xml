@@ -24,4 +24,13 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"/>
 
+    <Button
+        android:id="@+id/camera_playground"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="camera preview"
+        app:layout_constraintTop_toBottomOf="@id/audio_playground"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"/>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
