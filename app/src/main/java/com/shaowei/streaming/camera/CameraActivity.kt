@@ -11,11 +11,12 @@ import android.view.Surface
 import android.view.TextureView
 import android.view.WindowManager
 import android.widget.Toast
+import com.shaowei.streaming.R
 import com.shaowei.streaming.hasCameraPermission
 import com.shaowei.streaming.launchPermissionSettings
 import com.shaowei.streaming.requestCameraPermission
 import java.io.IOException
-
+//todo can't work, almost same code with LiveCameraActivityTextureView
 class CameraActivity : Activity(), TextureView.SurfaceTextureListener {
     private val TAG = CameraActivity::class.java.simpleName
     private var mCamera: Camera? = null
@@ -23,9 +24,12 @@ class CameraActivity : Activity(), TextureView.SurfaceTextureListener {
 
     override fun onCreate(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
         super.onCreate(savedInstanceState, persistentState)
-        val textureView = TextureView(this)
+        setContentView(R.layout.activity_camera)
+        val textureView = findViewById<TextureView>(R.id.camera_texture_view)
         textureView.surfaceTextureListener = this
-        setContentView(textureView)
+//        val textureView = TextureView(this)
+//        textureView.surfaceTextureListener = this
+//        setContentView(textureView)
     }
 
     override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {

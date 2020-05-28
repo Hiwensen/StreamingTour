@@ -5,7 +5,9 @@ import android.os.Bundle
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import com.shaowei.streaming.audio.AudioActivity
-import com.shaowei.streaming.camera.LiveCameraActivity
+import com.shaowei.streaming.camera.CameraActivity
+import com.shaowei.streaming.camera.LiveCameraSurfaceViewActivity
+import com.shaowei.streaming.camera.LiveCameraTextureViewActivity
 import com.shaowei.streaming.image.ImageActivity
 
 class MainActivity : AppCompatActivity() {
@@ -22,8 +24,9 @@ class MainActivity : AppCompatActivity() {
         }
 
         findViewById<Button>(R.id.camera_playground).setOnClickListener {
-//            startActivity(Intent(this, CameraActivity::class.java))
-            startActivity(Intent(this, LiveCameraActivity::class.java))
+            startActivity(Intent(this, CameraActivity::class.java))
+//            startActivity(Intent(this, LiveCameraTextureViewActivity::class.java))
+//            startActivity(Intent(this, LiveCameraSurfaceViewActivity::class.java))
         }
     }
 

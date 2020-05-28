@@ -34,11 +34,11 @@ import java.io.IOException
 
 /**
  * More or less straight out of TextureView's doc.
- *
+ * Camera preview with TextureView
  *
  * TODO: add options for different display sizes, frame rates, camera selection, etc.
  */
-class LiveCameraActivity : Activity(), SurfaceTextureListener {
+class LiveCameraTextureViewActivity : Activity(), SurfaceTextureListener {
     private val TAG = "LiveCameraActivity"
     private var mCamera: Camera? = null
     private var mSurfaceTexture: SurfaceTexture? = null

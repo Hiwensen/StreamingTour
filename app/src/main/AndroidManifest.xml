@@ -24,7 +24,8 @@
         <activity android:name=".image.ImageActivity"/>
         <activity android:name=".audio.AudioActivity"/>
         <activity android:name=".camera.CameraActivity"/>
-        <activity android:name=".camera.LiveCameraActivity"/>
+        <activity android:name=".camera.LiveCameraTextureViewActivity"/>
+        <activity android:name=".camera.LiveCameraSurfaceViewActivity"/>
     </application>
 
 </manifest>

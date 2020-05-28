@@ -4,9 +4,9 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <TextureView
-        android:id="@+id/camera_texture_view"
-        app:layout_constraintTop_toTopOf="parent"
+    <SurfaceView
+        android:id="@+id/live_camera_surface_view"
+        app:layout_constraintTop_toBottomOf="parent"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 
