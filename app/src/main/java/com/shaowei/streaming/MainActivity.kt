@@ -24,9 +24,9 @@ class MainActivity : AppCompatActivity() {
         }
 
         findViewById<Button>(R.id.camera_playground).setOnClickListener {
-            startActivity(Intent(this, CameraActivity::class.java))
+//            startActivity(Intent(this, CameraActivity::class.java))
 //            startActivity(Intent(this, LiveCameraTextureViewActivity::class.java))
-//            startActivity(Intent(this, LiveCameraSurfaceViewActivity::class.java))
+            startActivity(Intent(this, LiveCameraSurfaceViewActivity::class.java))
         }
     }
 

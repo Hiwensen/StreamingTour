@@ -26,6 +26,7 @@
         <activity android:name=".camera.CameraActivity"/>
         <activity android:name=".camera.LiveCameraTextureViewActivity"/>
         <activity android:name=".camera.LiveCameraSurfaceViewActivity"/>
+        <activity android:name=".camera.Camera2Activity"/>
     </application>
 
 </manifest>

@@ -1,6 +1,5 @@
 package com.shaowei.streaming.camera
 
-import android.app.Activity
 import android.content.Context
 import android.graphics.SurfaceTexture
 import android.hardware.Camera
@@ -11,13 +10,18 @@ import android.view.Surface
 import android.view.TextureView
 import android.view.WindowManager
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import com.shaowei.streaming.R
 import com.shaowei.streaming.hasCameraPermission
 import com.shaowei.streaming.launchPermissionSettings
 import com.shaowei.streaming.requestCameraPermission
 import java.io.IOException
+
 //todo can't work, almost same code with LiveCameraActivityTextureView
-class CameraActivity : Activity(), TextureView.SurfaceTextureListener {
+/**
+ * Camera preview with the deprecated Camera API
+ */
+class CameraActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
     private val TAG = CameraActivity::class.java.simpleName
     private var mCamera: Camera? = null
     private var mSurfaceTexture: SurfaceTexture? = null
