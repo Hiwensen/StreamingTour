@@ -5,22 +5,25 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.os.Environment
-import android.os.PersistableBundle
 import android.provider.MediaStore
+import android.util.Log
 import android.widget.Button
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.FileProvider
 import com.shaowei.streaming.R
 import java.io.File
+import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 
 const val TAKE_PICTURE_REQUEST_CODE = 1
+const val FILE_PROVIDER_AUTHORITY = "com.shaowei.streaming.fileprovider"
 
 class CameraIntentActivity : AppCompatActivity() {
+    private val TAG = CameraIntentActivity::class.java.simpleName
     private lateinit var mPictureView: ImageView
     private var mCurrentPhotoPath = ""
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,13 +37,21 @@ class CameraIntentActivity : AppCompatActivity() {
 
     private fun dispatchTakePictureIntent() {
         Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
+            // Ensure that there's a camera activity to handle the intent
             takePictureIntent.resolveActivity(packageManager)?.also {
-                //Notice that the startActivityForResult() method is protected by a condition
-                // that calls resolveActivity(),
-                // which returns the first activity component that can handle the intent.
-                // Performing this check is important because if you call startActivityForResult()
-                // using an intent that no app can handle, your app will crash.
-                startActivityForResult(takePictureIntent, TAKE_PICTURE_REQUEST_CODE)
+                val photoFile = try {
+                    createImageFile()
+                } catch (ioException: IOException) {
+                    Log.e(TAG, ioException.toString())
+                    null
+                }
+
+                photoFile?.also {
+                    //storage/emulated/0/Android/data/com.shaowei.streaming/files/Pictures/JPEG_...
+                    val photoUri = FileProvider.getUriForFile(this, FILE_PROVIDER_AUTHORITY, it)
+                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
+                    startActivityForResult(takePictureIntent, TAKE_PICTURE_REQUEST_CODE)
+                }
             }
         }
     }
@@ -48,7 +59,9 @@ class CameraIntentActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == TAKE_PICTURE_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-            val bitmap = data?.extras?.get("data") as Bitmap
+            // get the thumbnail, if the picture is stored, the data won't be returned
+            val bitmap = data?.extras?.get("data")?.let { it as Bitmap }
+
             bitmap?.let {
                 mPictureView.setImageBitmap(bitmap)
             }

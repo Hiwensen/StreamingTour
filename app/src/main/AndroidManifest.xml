@@ -30,6 +30,19 @@
         <activity android:name=".camera.LiveCameraTextureViewActivity"/>
         <activity android:name=".camera.LiveCameraSurfaceViewActivity"/>
         <activity android:name=".camera.Camera2Activity"/>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.shaowei.streaming.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths">
+
+            </meta-data>
+        </provider>
+
     </application>
 
 </manifest>
