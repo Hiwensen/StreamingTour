@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
@@ -15,15 +14,13 @@ import android.widget.Toast
 import android.widget.VideoView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
-import com.shaowei.streaming.R
-import com.shaowei.streaming.hasCameraPermission
-import com.shaowei.streaming.launchPermissionSettings
-import com.shaowei.streaming.requestCameraPermission
+import com.shaowei.streaming.*
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.min
+
 
 const val REQUEST_CODE_IMAGE_CAPTURE = 1
 const val REQUEST_CODE_VIDEO_CAPTURE = 2
@@ -40,7 +37,11 @@ class CameraIntentActivity : AppCompatActivity() {
         setContentView(R.layout.activity_camera_intent)
 
         if (!hasCameraPermission(this)) {
-            requestCameraPermission(this, false)
+            requestCameraPermission(this, true)
+        }
+
+        if (!hasWriteStoragePermission(this)) {
+            requestWriteStoragePermission(this)
         }
 
         findViewById<Button>(R.id.image_capture).setOnClickListener {
@@ -62,8 +63,6 @@ class CameraIntentActivity : AppCompatActivity() {
             bitmap?.let {
                 mPictureView.setImageBitmap(bitmap)
             }
-
-            galleryAddPic()
         }
 
         if (requestCode == REQUEST_CODE_VIDEO_CAPTURE && resultCode == Activity.RESULT_OK) {
@@ -88,19 +87,21 @@ class CameraIntentActivity : AppCompatActivity() {
             launchPermissionSettings(this)
             finish()
         }
+
+        if (!hasWriteStoragePermission(this)) {
+            Toast.makeText(
+                this,
+                "Writing to external storage permission is needed to run this application",
+                Toast.LENGTH_LONG
+            ).show()
+            launchPermissionSettings(this)
+            finish()
+        }
     }
 
     override fun onStop() {
         super.onStop()
         mVideoView.stopPlayback()
-    }
-
-    private fun dispatchVideoCaptureIntent() {
-        Intent(MediaStore.ACTION_VIDEO_CAPTURE).also { takeVideoIntent ->
-            takeVideoIntent.resolveActivity(packageManager)?.also {
-                startActivityForResult(takeVideoIntent, REQUEST_CODE_VIDEO_CAPTURE)
-            }
-        }
     }
 
     private fun dispatchImageCaptureIntent() {
@@ -117,7 +118,7 @@ class CameraIntentActivity : AppCompatActivity() {
                 photoFile?.also {
                     // storage/emulated/0/Android/data/com.shaowei.streaming/files/Pictures/JPEG_...
                     val photoUri = FileProvider.getUriForFile(this, FILE_PROVIDER_AUTHORITY, it)
-                    // takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
+//                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
                     startActivityForResult(takePictureIntent, REQUEST_CODE_IMAGE_CAPTURE)
                 }
             }
@@ -128,6 +129,7 @@ class CameraIntentActivity : AppCompatActivity() {
         // Create an image file name
         val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
         val storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+
         return File.createTempFile(
             "JPEG_${timeStamp}_", /* prefix */
             ".jpg", /* suffix */
@@ -139,12 +141,11 @@ class CameraIntentActivity : AppCompatActivity() {
         }
     }
 
-    private fun galleryAddPic() {
-        //todo doesn't work
-        Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE).also { mediaScanIntent ->
-            val f = File(mCurrentPhotoPath)
-            mediaScanIntent.data = Uri.fromFile(f)
-            sendBroadcast(mediaScanIntent)
+    private fun dispatchVideoCaptureIntent() {
+        Intent(MediaStore.ACTION_VIDEO_CAPTURE).also { takeVideoIntent ->
+            takeVideoIntent.resolveActivity(packageManager)?.also {
+                startActivityForResult(takeVideoIntent, REQUEST_CODE_VIDEO_CAPTURE)
+            }
         }
     }
 
