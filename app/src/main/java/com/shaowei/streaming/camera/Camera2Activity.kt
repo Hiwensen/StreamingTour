@@ -68,7 +68,7 @@ class Camera2Activity : AppCompatActivity() {
     private var mOutputFormat = PixelFormat.TRANSPARENT
 
     override fun onCreate(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
-        setContentView(R.layout.camera2_activity)
+        setContentView(R.layout.activity_camera2)
         mSurfaceView = findViewById(R.id.camera2_surface_view)
         mSurfaceView.holder.addCallback(object : SurfaceHolder.Callback {
             override fun surfaceChanged(
