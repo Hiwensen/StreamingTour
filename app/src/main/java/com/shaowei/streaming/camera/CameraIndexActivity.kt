@@ -17,7 +17,7 @@ class CameraIndexActivity : AppCompatActivity() {
         }
 
         findViewById<Button>(R.id.camera_x).setOnClickListener {
-            startActivity(Intent(this, CameraXActivity::class.java))
+            startActivity(Intent(this, CameraXSimpleActivity::class.java))
         }
 
         findViewById<Button>(R.id.camera_old).setOnClickListener {

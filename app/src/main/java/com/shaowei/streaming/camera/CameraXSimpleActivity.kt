@@ -22,7 +22,7 @@ import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-class CameraXActivity : AppCompatActivity() {
+class CameraXSimpleActivity : AppCompatActivity() {
     private lateinit var mPreviewUseCase: Preview
     private lateinit var mCaptureButton: Button
     private lateinit var mPreviewView: PreviewView
@@ -188,7 +188,7 @@ class CameraXActivity : AppCompatActivity() {
     }
 
     companion object {
-        private val TAG = CameraXActivity::class.java.simpleName
+        private val TAG = CameraXSimpleActivity::class.java.simpleName
         private const val FILE_NAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
     }
 
