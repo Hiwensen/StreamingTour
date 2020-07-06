@@ -1,4 +1,4 @@
-package com.shaowei.streaming.camera
+package com.shaowei.streaming.camera.camerax
 
 import android.view.View
 import android.widget.ImageButton

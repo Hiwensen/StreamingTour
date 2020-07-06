@@ -5,10 +5,7 @@ import android.os.Bundle
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import com.shaowei.streaming.audio.AudioActivity
-import com.shaowei.streaming.camera.CameraActivity
 import com.shaowei.streaming.camera.CameraIndexActivity
-import com.shaowei.streaming.camera.LiveCameraSurfaceViewActivity
-import com.shaowei.streaming.camera.LiveCameraTextureViewActivity
 import com.shaowei.streaming.image.ImageActivity
 
 class MainActivity : AppCompatActivity() {

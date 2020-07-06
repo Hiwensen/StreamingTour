@@ -39,12 +39,12 @@
         <activity android:name=".audio.AudioActivity" />
         <activity android:name=".camera.CameraIndexActivity" />
         <activity android:name=".camera.CameraIntentActivity" />
-        <activity android:name=".camera.CameraXSimpleActivity" />
-        <activity android:name=".camera.CameraActivity" />
-        <activity android:name=".camera.LiveCameraTextureViewActivity" />
-        <activity android:name=".camera.LiveCameraSurfaceViewActivity" />
-        <activity android:name=".camera.Camera2Activity" />
-        <activity android:name=".camera.CameraxActivity"/>
+        <activity android:name=".camera.camerax.CameraXSimpleActivity" />
+        <activity android:name=".camera.cameraapi.CameraActivity" />
+        <activity android:name=".camera.cameraapi.LiveCameraTextureViewActivity" />
+        <activity android:name=".camera.cameraapi.LiveCameraSurfaceViewActivity" />
+        <activity android:name=".camera.camera2api.Camera2Activity" />
+        <activity android:name=".camera.camerax.CameraxActivity"/>
 
         <provider
             android:name="androidx.core.content.FileProvider"

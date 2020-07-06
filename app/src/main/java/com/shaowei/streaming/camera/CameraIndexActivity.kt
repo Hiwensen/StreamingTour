@@ -5,6 +5,9 @@ import android.os.Bundle
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import com.shaowei.streaming.R
+import com.shaowei.streaming.camera.camera2api.Camera2Activity
+import com.shaowei.streaming.camera.cameraapi.LiveCameraSurfaceViewActivity
+import com.shaowei.streaming.camera.camerax.CameraXSimpleActivity
 
 class CameraIndexActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

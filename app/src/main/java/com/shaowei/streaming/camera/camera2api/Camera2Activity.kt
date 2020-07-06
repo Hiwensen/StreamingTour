@@ -1,4 +1,4 @@
-package com.shaowei.streaming.camera
+package com.shaowei.streaming.camera.camera2api
 
 import android.annotation.SuppressLint
 import android.content.Context

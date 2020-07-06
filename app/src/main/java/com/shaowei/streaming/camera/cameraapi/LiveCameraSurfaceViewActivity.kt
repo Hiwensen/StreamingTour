@@ -1,4 +1,4 @@
-package com.shaowei.streaming.camera
+package com.shaowei.streaming.camera.cameraapi
 
 import android.app.Activity
 import android.content.Context

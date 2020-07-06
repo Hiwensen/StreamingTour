@@ -1,4 +1,4 @@
-package com.shaowei.streaming.camera
+package com.shaowei.streaming.camera.camerax
 
 import android.net.Uri
 import android.os.Build
@@ -137,11 +137,18 @@ class CameraXSimpleActivity : AppCompatActivity() {
             val imageAnalyzer = ImageAnalysis.Builder()
                 .build()
                 .also {
-                    it.setAnalyzer(mCameraExecutor, LuminosityAnalyzer(object : LumaListener {
-                        override fun analyzeLuma(luma: Double) {
-                            Log.d(TAG, luma.toString())
-                        }
-                    }))
+                    it.setAnalyzer(mCameraExecutor,
+                        LuminosityAnalyzer(
+                            object :
+                                LumaListener {
+                                override fun analyzeLuma(luma: Double) {
+                                    Log.d(
+                                        TAG,
+                                        luma.toString()
+                                    )
+                                }
+                            })
+                    )
                 }
 
             // Select back camera
