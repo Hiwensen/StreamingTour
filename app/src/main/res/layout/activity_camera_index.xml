@@ -15,14 +15,24 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
-        android:id="@+id/camera_x"
+        android:id="@+id/camera_x_simple"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
-        android:text="use cameraX"
+        android:text="cameraX simple"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/camera_intent" />
+
+    <Button
+        android:id="@+id/camera_x_enhance"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="cameraX enhance"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/camera_x_simple" />
 
     <Button
         android:id="@+id/camera_old"
@@ -32,7 +42,7 @@
         android:text="use camera api"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/camera_x" />
+        app:layout_constraintTop_toBottomOf="@id/camera_x_enhance" />
 
     <Button
         android:id="@+id/camera_2"

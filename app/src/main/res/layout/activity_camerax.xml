@@ -13,6 +13,6 @@
         android:keepScreenOn="true"
         app:defaultNavHost="true"
         app:navGraph="@navigation/nav_graph"
-        tools:context=".camera.camerax.CameraxActivity" />
+        tools:context=".camera.camerax.CameraxEnhanceActivity" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

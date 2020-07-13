@@ -22,10 +22,6 @@ import com.shaowei.streaming.R
 
 typealias LumaListener = (luma: Double) -> Unit
 
-const val KEY_EVENT_ACTION = "key_event_action"
-const val KEY_EVENT_EXTRA = "key_event_extra"
-private const val IMMERSIVE_FLAG_TIMEOUT = 500L
-
 /**
  * Main fragment for CameraX. Implements all camera operations including:
  * - Viewfinder

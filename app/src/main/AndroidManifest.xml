@@ -44,7 +44,7 @@
         <activity android:name=".camera.cameraapi.LiveCameraTextureViewActivity" />
         <activity android:name=".camera.cameraapi.LiveCameraSurfaceViewActivity" />
         <activity android:name=".camera.camera2api.Camera2Activity" />
-        <activity android:name=".camera.camerax.CameraxActivity"/>
+        <activity android:name=".camera.camerax.CameraxEnhanceActivity"/>
 
         <provider
             android:name="androidx.core.content.FileProvider"

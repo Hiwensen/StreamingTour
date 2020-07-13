@@ -17,6 +17,7 @@ package com.shaowei.streaming
 
 import android.Manifest
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -31,16 +32,16 @@ import androidx.core.content.ContextCompat
  */
 const val RC_PERMISSION_REQUEST = 9222
 
-fun hasCameraPermission(activity: Activity): Boolean {
+fun hasCameraPermission(context: Context): Boolean {
     return ContextCompat.checkSelfPermission(
-        activity,
+        context,
         Manifest.permission.CAMERA
     ) == PackageManager.PERMISSION_GRANTED
 }
 
-fun hasWriteStoragePermission(activity: Activity): Boolean {
+fun hasWriteStoragePermission(context: Context): Boolean {
     return ContextCompat.checkSelfPermission(
-        activity,
+        context,
         Manifest.permission.WRITE_EXTERNAL_STORAGE
     ) == PackageManager.PERMISSION_GRANTED
 }
@@ -55,7 +56,8 @@ fun requestCameraPermission(activity: Activity, requestWritePermission: Boolean)
                 Manifest.permission.WRITE_EXTERNAL_STORAGE
             )
     if (showRationale) {
-        Toast.makeText(activity,
+        Toast.makeText(
+            activity,
             "Camera permission is needed to run this application", Toast.LENGTH_LONG
         ).show()
     } else {

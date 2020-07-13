@@ -8,6 +8,7 @@ import com.shaowei.streaming.R
 import com.shaowei.streaming.camera.camera2api.Camera2Activity
 import com.shaowei.streaming.camera.cameraapi.LiveCameraSurfaceViewActivity
 import com.shaowei.streaming.camera.camerax.CameraXSimpleActivity
+import com.shaowei.streaming.camera.camerax.CameraxEnhanceActivity
 
 class CameraIndexActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -19,8 +20,12 @@ class CameraIndexActivity : AppCompatActivity() {
             startActivity(Intent(this, CameraIntentActivity::class.java))
         }
 
-        findViewById<Button>(R.id.camera_x).setOnClickListener {
+        findViewById<Button>(R.id.camera_x_simple).setOnClickListener {
             startActivity(Intent(this, CameraXSimpleActivity::class.java))
+        }
+
+        findViewById<Button>(R.id.camera_x_enhance).setOnClickListener {
+            startActivity(Intent(this, CameraxEnhanceActivity::class.java))
         }
 
         findViewById<Button>(R.id.camera_old).setOnClickListener {

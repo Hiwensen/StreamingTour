@@ -137,7 +137,8 @@ class CameraXSimpleActivity : AppCompatActivity() {
             val imageAnalyzer = ImageAnalysis.Builder()
                 .build()
                 .also {
-                    it.setAnalyzer(mCameraExecutor,
+                    it.setAnalyzer(
+                        mCameraExecutor,
                         LuminosityAnalyzer(
                             object :
                                 LumaListener {
