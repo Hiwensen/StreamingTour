@@ -28,7 +28,7 @@
             app:destination="@+id/gallery_fragment" />
 
         <action
-            android:id="@+id/action_to_permissions"
+            android:id="@+id/action_camera_to_permissions"
             app:destination="@id/permissions_fragment"
             app:popUpTo="@id/camerax_fragment"
             app:popUpToInclusive="true" />
