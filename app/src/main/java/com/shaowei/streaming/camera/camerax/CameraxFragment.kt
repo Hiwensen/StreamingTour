@@ -4,19 +4,26 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.hardware.display.DisplayManager
+import android.media.MediaScannerConnection
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.webkit.MimeTypeMap
 import android.widget.ImageButton
 import androidx.camera.core.*
+import androidx.camera.core.ImageCapture.Metadata
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.net.toFile
 import androidx.core.view.setPadding
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -24,15 +31,16 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.navigation.Navigation
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
-import com.shaowei.streaming.MainActivity
 import com.shaowei.streaming.R
 import com.shaowei.streaming.hasCameraPermission
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
+import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+
 
 typealias LumaListener = (luma: Double) -> Unit
 
@@ -94,7 +102,11 @@ class CameraxFragment : Fragment() {
         override fun onDisplayRemoved(displayId: Int) = Unit
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?):
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ):
             View? = inflater.inflate(R.layout.fragment_camerax, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -108,7 +120,7 @@ class CameraxFragment : Fragment() {
 
         // Set up the intent filter that will receive events from main activity
         val filter = IntentFilter().apply { addAction(KEY_EVENT_ACTION) }
-        broadcastManager.registerReceiver(volumeDownReceiver,filter)
+        broadcastManager.registerReceiver(volumeDownReceiver, filter)
 
         // Every time the orientation of the device changes, update the rotation for use case
         displayManager.registerDisplayListener(displayListener, null)
@@ -147,15 +159,84 @@ class CameraxFragment : Fragment() {
 
         // In the background, load latest photo taken(if any) for gallery thumbnail
         lifecycleScope.launch(Dispatchers.IO) {
-            outputDirectory.listFiles{ file ->
+            outputDirectory.listFiles { file ->
                 EXTENSION_WHITELIST.contains(file.extension.toUpperCase(Locale.ROOT))
             }?.max()?.let {
                 setGalleryThumbnail(Uri.fromFile(it))
             }
         }
 
-        // todo
+        // Listener for button used to capture photo
+        controllerView.findViewById<ImageButton>(R.id.camera_capture_button).setOnClickListener {
+            // Get a stable reference of the modifiable image capture use case
+            imageCapture?.let { imageCapture ->
+                // Create output file to hold the image
+                val photoFile = createFile(outputDirectory, FILENAME, PHOTO_EXTENSION)
 
+                // Setup image capture metadata
+                val metadata = Metadata().apply {
+                    // Mirror image when using the front camera
+                    isReversedHorizontal = lensFacing == CameraSelector.LENS_FACING_FRONT
+                }
+
+                // Create output options object which contains file + metadata
+                val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile)
+                    .setMetadata(metadata)
+                    .build()
+
+                // Setup image capture listener which is triggered after photo has been taken
+                imageCapture.takePicture(outputOptions, cameraExecutor, object : ImageCapture.OnImageSavedCallback {
+                    override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
+                        val savedUri = outputFileResults.savedUri ?: Uri.fromFile(photoFile)
+                        Log.d(TAG, "Photo capture succeeded: $savedUri")
+
+                        // We can only change the foreground Drawable using API level 23+ API
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                            // Update the gallery thumbnail with latest picture taken
+                            setGalleryThumbnail(savedUri)
+                        }
+
+                        // Implicit broadcasts will be ignored for devices running API level >= 24
+                        // so if you only target API level 24+ you can remove this statement
+                        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+                            requireActivity().sendBroadcast(
+                                Intent(android.hardware.Camera.ACTION_NEW_PICTURE, savedUri)
+                            )
+                        }
+
+                        // If the folder selected is an external media directory, this is
+                        // unnecessary but otherwise other apps will not be able to access our
+                        // images unless we scan them using [MediaScannerConnection]
+                        val mimeType = MimeTypeMap.getSingleton()
+                            .getMimeTypeFromExtension(savedUri.toFile().extension)
+                        MediaScannerConnection.scanFile(
+                            context,
+                            arrayOf(savedUri.toFile().absolutePath),
+                            arrayOf(mimeType)
+                        ) { _, uri ->
+                            Log.d(TAG, "Image capture scanned into media store: $uri")
+                        }
+                    }
+
+                    override fun onError(exception: ImageCaptureException) {
+                        Log.e(TAG, "Photo capture failed:${exception.message}", exception)
+                    }
+
+                })
+
+                // We can only change the foreground Drawable using API level 23+ API
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+
+                    // Display flash animation to indicate that photo was captured
+                    container.postDelayed({
+                        container.foreground = ColorDrawable(Color.WHITE)
+                        container.postDelayed(
+                            { container.foreground = null }, ANIMATION_FAST_MILLIS)
+                    }, ANIMATION_SLOW_MILLIS)
+                }
+
+            }
+        }
 
     }
 
@@ -198,11 +279,23 @@ class CameraxFragment : Fragment() {
 
     companion object {
         val TAG = CameraxFragment::class.java.simpleName
+        private const val FILENAME = "yyyy-MM-dd-HH-mm-ss-SSS"
+        private const val PHOTO_EXTENSION = ".jpg"
+        private const val RATIO_4_3_VALUE = 4.0 / 3.0
+        private const val RATIO_16_9_VALUE = 16.0 / 9.0
+
+        /** Helper function used to create a timestamped file */
+        private fun createFile(baseFolder: File, format: String, extension: String) =
+            File(
+                baseFolder, SimpleDateFormat(format, Locale.US)
+                    .format(System.currentTimeMillis()) + extension
+            )
 
         fun getOutputDirectory(context: Context): File {
             val appContext = context.applicationContext
             val mediaDir = context.externalMediaDirs.firstOrNull()?.let {
-                File(it, appContext.resources.getString(R.string.app_name)).apply { mkdirs() } }
+                File(it, appContext.resources.getString(R.string.app_name)).apply { mkdirs() }
+            }
             return if (mediaDir != null && mediaDir.exists())
                 mediaDir else appContext.filesDir
         }
