@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.hardware.display.DisplayManager
@@ -101,7 +102,6 @@ class CameraxFragment : Fragment() {
 
                     Log.d(TAG, "rotation changed: ${it.display?.rotation}")
                     imageCapture?.targetRotation = it.display.rotation
-                    imageAnalyzer?.targetRotation = it.display.rotation
                 }
             } ?: Unit
 
@@ -155,6 +155,24 @@ class CameraxFragment : Fragment() {
         }
     }
 
+    /**
+     * Inflate camera controls and update the UI manually upon config changes to avoid removing
+     * and re-adding the view finder from the view hierarchy; this provides a seamless rotation
+     * transition on devices that support it.
+     *
+     * NOTE: The flag is supported starting in Android 8 but there still is a small flash on the
+     * screen for devices that run Android 9 or below.
+     */
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+
+        // Redraw the camera UI controls
+        updateCameraUi()
+
+        // Enable or disable switching between cameras
+        updateCameraSwitchButton()
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         // Shut down background executor
@@ -168,10 +186,10 @@ class CameraxFragment : Fragment() {
     /** Initialize CameraX, and prepare to bind the camera use cases  */
     private fun setUpCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext())
-        cameraProviderFuture.addListener(Runnable{
+        cameraProviderFuture.addListener(Runnable {
             cameraProvider = cameraProviderFuture.get()
 
-            lensFacing =  when{
+            lensFacing = when {
                 hasBackCamera() -> CameraSelector.LENS_FACING_BACK
                 hasFrontCamera() -> CameraSelector.LENS_FACING_FRONT
                 else -> throw IllegalStateException("Back and front camera are unavailable")
@@ -332,8 +350,10 @@ class CameraxFragment : Fragment() {
             if (true == outputDirectory.listFiles()?.isNotEmpty()) {
                 Navigation.findNavController(
                     requireActivity(), R.id.fragment_container
-                ).navigate(CameraxFragmentDirections
-                    .actionCameraToGallery(outputDirectory.absolutePath))
+                ).navigate(
+                    CameraxFragmentDirections
+                        .actionCameraToGallery(outputDirectory.absolutePath)
+                )
             }
         }
 
