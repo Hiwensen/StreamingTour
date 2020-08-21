@@ -17,6 +17,7 @@ class Camera2Activity : AppCompatActivity() {
     private lateinit var container: FrameLayout
 
     override fun onCreate(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
+        super.onCreate(savedInstanceState, persistentState)
         setContentView(R.layout.activity_camera2)
         container = findViewById(R.id.fragment_container_camera2)
     }
@@ -25,7 +26,10 @@ class Camera2Activity : AppCompatActivity() {
         super.onResume()
         // Before setting full screen flags, we must wait a bit to let UI settle; otherwise, we may
         // be trying to set app to immersive mode before it's ready and the flags do not stick
-        container.postDelayed({ container.systemUiVisibility = FLAGS_FULLSCREEN }, IMMERSIVE_FLAG_TIMEOUT)
+//        val container = findViewById<FrameLayout>(R.id.fragment_container)
+        container.postDelayed({
+            container.systemUiVisibility = FLAGS_FULLSCREEN
+        }, IMMERSIVE_FLAG_TIMEOUT)
     }
 
 
