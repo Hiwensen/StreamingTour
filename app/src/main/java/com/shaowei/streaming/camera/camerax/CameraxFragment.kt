@@ -150,7 +150,7 @@ class CameraxFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         if (!hasCameraPermission(requireContext())) {
-            Navigation.findNavController(requireActivity(), R.id.fragment_container)
+            Navigation.findNavController(requireActivity(), R.id.fragment_container_camera2)
                 .navigate(CameraxFragmentDirections.actionCameraToPermissions())
         }
     }
@@ -349,7 +349,7 @@ class CameraxFragment : Fragment() {
             // Only navigate when the gallery has photos
             if (true == outputDirectory.listFiles()?.isNotEmpty()) {
                 Navigation.findNavController(
-                    requireActivity(), R.id.fragment_container
+                    requireActivity(), R.id.fragment_container_camera2
                 ).navigate(
                     CameraxFragmentDirections
                         .actionCameraToGallery(outputDirectory.absolutePath)

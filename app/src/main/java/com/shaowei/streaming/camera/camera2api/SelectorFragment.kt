@@ -34,7 +34,7 @@ class SelectorFragment : Fragment() {
             adapter = GenericListAdapter(cameraList, itemLayoutId = layoutId) { view, item, _ ->
                 view.findViewById<TextView>(android.R.id.text1).text = item.title
                 view.setOnClickListener {
-                    Navigation.findNavController(requireActivity(), R.id.fragment_container)
+                    Navigation.findNavController(requireActivity(), R.id.fragment_container_camera2)
                         .navigate(SelectorFragmentDirections.actionSelectorToCamera(item.cameraId, item.format))
                 }
             }

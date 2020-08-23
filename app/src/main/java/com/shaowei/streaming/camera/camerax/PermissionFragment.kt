@@ -22,7 +22,7 @@ class PermissionFragment : Fragment() {
             // Request camera-related permissions
             requestPermissions(PERMISSIONS_REQUIRED, PERMISSIONS_REQUEST_CODE)
         } else {
-            Navigation.findNavController(requireActivity(), R.id.fragment_container)
+            Navigation.findNavController(requireActivity(), R.id.fragment_container_camera2)
                 .navigate(PermissionFragmentDirections.actionPermissionsToCamera())
         }
     }
@@ -34,7 +34,7 @@ class PermissionFragment : Fragment() {
             if (PackageManager.PERMISSION_GRANTED == grantResults.firstOrNull()) {
                 // Take the user to the success fragment when permission is granted
                 Toast.makeText(context, "Permission request granted", Toast.LENGTH_LONG).show()
-                Navigation.findNavController(requireActivity(), R.id.fragment_container).navigate(
+                Navigation.findNavController(requireActivity(), R.id.fragment_container_camera2).navigate(
                     PermissionFragmentDirections.actionPermissionsToCamera()
                 )
             } else {

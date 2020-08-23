@@ -18,7 +18,7 @@ class CameraxEnhanceActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_camerax)
-        container = findViewById(R.id.fragment_container)
+        container = findViewById(R.id.fragment_container_camera2)
     }
 
     override fun onResume() {
