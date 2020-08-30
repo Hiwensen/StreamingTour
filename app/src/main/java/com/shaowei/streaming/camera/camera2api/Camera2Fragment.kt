@@ -113,6 +113,7 @@ class Camera2Fragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
         inflater.inflate(R.layout.fragment_camera2, container, false)
 
+    @ExperimentalCoroutinesApi
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         overlay = view.findViewById(R.id.overlay)
@@ -273,9 +274,9 @@ class Camera2Fragment : Fragment() {
             imageQueue.add(image)
         }, imageReaderHandler)
 
-        val captureResult = session.device.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE)
+        val captureRequest = session.device.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE)
             .apply { addTarget(imageReader.surface) }
-        session.capture(captureResult.build(), object : CameraCaptureSession.CaptureCallback() {
+        session.capture(captureRequest.build(), object : CameraCaptureSession.CaptureCallback() {
 
             override fun onCaptureStarted(
                 session: CameraCaptureSession,

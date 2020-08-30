@@ -27,12 +27,13 @@
             </intent-filter>
 
             <!-- Register as a system camera app -->
-            <!--            <intent-filter>-->
-            <!--                <action android:name="android.media.action.IMAGE_CAPTURE" />-->
-            <!--                <action android:name="android.media.action.STILL_IMAGE_CAMERA"/>-->
-            <!--                <action android:name="android.media.action.VIDEO_CAMERA" />-->
-            <!--                <category android:name="android.intent.category.DEFAULT"/>-->
-            <!--            </intent-filter>-->
+            <intent-filter>
+                <action android:name="android.media.action.IMAGE_CAPTURE" />
+                <action android:name="android.media.action.STILL_IMAGE_CAMERA" />
+                <action android:name="android.media.action.VIDEO_CAMERA" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
         </activity>
 
         <activity android:name=".image.ImageActivity" />
@@ -44,7 +45,7 @@
         <activity android:name=".camera.cameraapi.LiveCameraTextureViewActivity" />
         <activity android:name=".camera.cameraapi.LiveCameraSurfaceViewActivity" />
         <activity android:name=".camera.camera2api.Camera2Activity" />
-        <activity android:name=".camera.camerax.CameraxEnhanceActivity"/>
+        <activity android:name=".camera.camerax.CameraxEnhanceActivity" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -53,7 +54,7 @@
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_paths"/>
+                android:resource="@xml/file_paths" />
         </provider>
 
     </application>
