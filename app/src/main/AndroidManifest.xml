@@ -46,6 +46,8 @@
         <activity android:name=".camera.cameraapi.LiveCameraSurfaceViewActivity" />
         <activity android:name=".camera.camera2api.Camera2Activity" />
         <activity android:name=".camera.camerax.CameraxEnhanceActivity" />
+        <activity android:name=".mediaExtractor.MediaExtractorActivity" />
+        <activity android:name=".mediaMuxer.MediaMuxerActivity" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
