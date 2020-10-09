@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.shaowei.streaming.audio.AudioActivity
 import com.shaowei.streaming.camera.CameraIndexActivity
 import com.shaowei.streaming.image.ImageActivity
+import com.shaowei.streaming.mediaExtractor.MediaExtractorActivity
 
 class MainActivity : AppCompatActivity() {
 
@@ -23,6 +24,10 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.camera_playground).setOnClickListener {
             startActivity(Intent(this, CameraIndexActivity::class.java))
+        }
+
+        findViewById<Button>(R.id.media_extractor).setOnClickListener {
+            startActivity(Intent(this, MediaExtractorActivity::class.java))
         }
     }
 
