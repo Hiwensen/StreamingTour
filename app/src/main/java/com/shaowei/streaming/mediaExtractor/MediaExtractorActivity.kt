@@ -3,8 +3,8 @@ package com.shaowei.streaming.mediaExtractor
 import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
-import android.os.Environment
 import android.util.Log
 import android.widget.Button
 import android.widget.Toast
@@ -19,9 +19,6 @@ class MediaExtractorActivity : AppCompatActivity() {
     private lateinit var extractFile: Button
     private val mExtractor = MediaExtractor()
     private val BUFFER_CAPACITY = 500 * 1024
-    private var mFilePath = Uri.parse("android.resource://com.shaowei.streaming/raw/shariver").toString()
-    private val mVideoPath = Environment.getExternalStorageDirectory().path + "/video.mp4"
-    private val mAudioPath = Environment.getExternalStorageDirectory().path + "/audio.pcm"
     private lateinit var mVideoOutputStream: FileOutputStream
     private lateinit var mAudioOutputStream: FileOutputStream
 
@@ -29,36 +26,27 @@ class MediaExtractorActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_media_extractor)
         extractFile = findViewById(R.id.extract_mp4)
-        Log.d(TAG, mFilePath)
-        extractFile.setOnClickListener { extract(mFilePath) }
+        extractFile.setOnClickListener { extractRawFile(R.raw.shariver) }
 
         if (!(hasWriteStoragePermission(this) && hasReadStoragePermission(this))) {
             requestReadWriteStoragePermission(this)
         } else {
-            val videoFile = File(mVideoPath)
-            if (!videoFile.exists()) {
-                val createNewFile = videoFile.createNewFile()
-                Log.d(TAG, "create video file: $createNewFile")
-            }
-
-            val audioFile = File(mAudioPath)
-            if (!audioFile.exists()) {
-                audioFile.createNewFile()
-                Log.d(TAG, "create audio file:$audioFile")
-            }
-
-            mVideoOutputStream = FileOutputStream(videoFile)
-            mAudioOutputStream = FileOutputStream(audioFile)
+            prepareOutputStream()
         }
     }
 
-    private fun extract(filePath: String) {
-
-        mExtractor.setDataSource(filePath)
+    /**
+     * The extracted file lack of some head info so can't be played
+     */
+    private fun extractRawFile(rawFileId: Int) {
+        val rawResourceFd = resources.openRawResourceFd(rawFileId)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            mExtractor.setDataSource(rawResourceFd)
+        }
         val trackCount = mExtractor.trackCount
         var audioTrackIndex = -1
         var videoTrackIndex = -1
-        for (i in 1 until trackCount) {
+        for (i in 0 until trackCount) {
             val mediaFormat = mExtractor.getTrackFormat(i)
             val formatString = mediaFormat.getString(MediaFormat.KEY_MIME)
             Log.d(TAG, "format string:$formatString")
@@ -116,7 +104,6 @@ class MediaExtractorActivity : AppCompatActivity() {
         } finally {
             mExtractor.release()
         }
-
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -129,21 +116,29 @@ class MediaExtractorActivity : AppCompatActivity() {
             ).show()
             launchPermissionSettings(this)
         } else {
-            val videoFile = File(mVideoPath)
-            if (!videoFile.exists()) {
-                val createNewFile = videoFile.createNewFile()
-                Log.d(TAG, "create video file: $createNewFile")
-            }
-
-            val audioFile = File(mAudioPath)
-            if (!audioFile.exists()) {
-                audioFile.createNewFile()
-                Log.d(TAG, "create audio file:$audioFile")
-            }
-
-            mVideoOutputStream = FileOutputStream(videoFile)
-            mAudioOutputStream = FileOutputStream(audioFile)
+            prepareOutputStream()
         }
+    }
+
+    private fun prepareOutputStream() {
+        val videoFile = File(this.filesDir, "video.mp4")
+        if (!videoFile.exists()) {
+            val createNewFile = videoFile.createNewFile()
+            Log.d(TAG, "create video file: $createNewFile, file path: ${videoFile.path}, abs path:${videoFile.absolutePath}")
+        } else {
+            Log.d(TAG, "video file path: ${videoFile.path}, abs path:${videoFile.absolutePath}")
+        }
+
+        val audioFile = File(this.filesDir, "audio.pcm")
+        if (!audioFile.exists()) {
+            val createAudioFile = audioFile.createNewFile()
+            Log.d(TAG, "create video file: $createAudioFile, file path: ${audioFile.path}, abs path:${audioFile.absolutePath}")
+        } else {
+            Log.d(TAG, "audio file path: ${audioFile.path}, abs path:${audioFile.absolutePath}")
+        }
+
+        mVideoOutputStream = FileOutputStream(videoFile)
+        mAudioOutputStream = FileOutputStream(audioFile)
     }
 
     override fun onStop() {
