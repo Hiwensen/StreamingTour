@@ -5,12 +5,39 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <Button
-        android:id="@+id/extract_mp4"
+        android:id="@+id/extract_mp4_can_not_play"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="extract mp4"
+        android:text="extract mp4 can not play"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintTop_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"/>
+
+    <Button
+        android:id="@+id/extract_video_can_play"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="extract video can play"
+        app:layout_constraintTop_toBottomOf="@id/extract_mp4_can_not_play"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"/>
+
+    <Button
+        android:id="@+id/extract_audio_can_play"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="extract audio can play"
+        app:layout_constraintTop_toBottomOf="@id/extract_video_can_play"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"/>
+
+    <Button
+        android:id="@+id/compose"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="compose video audio file"
+        app:layout_constraintTop_toBottomOf="@id/extract_audio_can_play"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"/>
 
