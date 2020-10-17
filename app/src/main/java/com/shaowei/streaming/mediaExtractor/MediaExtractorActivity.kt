@@ -67,7 +67,7 @@ class MediaExtractorActivity : AppCompatActivity() {
         val audioTrackCount = audioExtractor.trackCount
         var audioTrackFormat: MediaFormat? = null
         for (i in 0 until audioTrackCount) {
-            audioTrackFormat = videoExtractor.getTrackFormat(i)
+            audioTrackFormat = audioExtractor.getTrackFormat(i)
             val formatString = audioTrackFormat.getString(MediaFormat.KEY_MIME)
             if (formatString?.startsWith("audio/") == true) {
                 Log.d(TAG,"compose, audio track:$i")
@@ -91,7 +91,7 @@ class MediaExtractorActivity : AppCompatActivity() {
         while (true) {
             // Read data from mediaExtractor
             val readSampleData = videoExtractor.readSampleData(byteBuffer, 0)
-            if (readSampleData <= 0) {
+            if (readSampleData < 0) {
                 break
             }
 
@@ -108,7 +108,7 @@ class MediaExtractorActivity : AppCompatActivity() {
         while (true) {
             // Read data from mediaExtractor
             val readSampleData = audioExtractor.readSampleData(byteBuffer, 0)
-            if (readSampleData <= 0) {
+            if (readSampleData < 0) {
                 break
             }
 
@@ -168,7 +168,7 @@ class MediaExtractorActivity : AppCompatActivity() {
             extractor.selectTrack(videoTrackIndex)
             while (true) {
                 val readSampleData = extractor.readSampleData(inputBuffer, 0)
-                if (readSampleData <= 0) {
+                if (readSampleData < 0) {
                     break
                 }
 
@@ -184,7 +184,7 @@ class MediaExtractorActivity : AppCompatActivity() {
             extractor.selectTrack(audioTrackIndex)
             while (true) {
                 val readSampleData = extractor.readSampleData(inputBuffer, 0)
-                if (readSampleData <= 0) {
+                if (readSampleData < 0) {
                     break
                 }
 
@@ -245,7 +245,7 @@ class MediaExtractorActivity : AppCompatActivity() {
         while (true) {
             // Read data from mediaExtractor
             val readSampleData = mediaExtractor.readSampleData(byteBuffer, 0)
-            if (readSampleData <= 0) {
+            if (readSampleData < 0) {
                 break
             }
 
@@ -265,6 +265,9 @@ class MediaExtractorActivity : AppCompatActivity() {
         Log.d(TAG, "extract video file can be played end")
     }
 
+    /**
+     *  todo the audio duration is larger than the original content duration
+     */
     private fun extractAudioCanPlay(rawFileId: Int) {
         val mediaExtractor = MediaExtractor()
         val rawResourceFd = resources.openRawResourceFd(rawFileId)
@@ -294,6 +297,7 @@ class MediaExtractorActivity : AppCompatActivity() {
 
             if (formatString?.startsWith("video/") == true) {
                 frameRate = mediaFormat.getInteger(MediaFormat.KEY_FRAME_RATE)
+                break
             }
         }
 
@@ -307,7 +311,7 @@ class MediaExtractorActivity : AppCompatActivity() {
         while (true) {
             // Read data from mediaExtractor
             val readSampleData = mediaExtractor.readSampleData(byteBuffer, 0)
-            if (readSampleData <= 0) {
+            if (readSampleData < 0) {
                 break
             }
 
