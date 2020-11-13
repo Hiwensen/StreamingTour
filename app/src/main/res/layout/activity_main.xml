@@ -42,4 +42,13 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"/>
 
+    <Button
+        android:id="@+id/media_codec"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="media codec"
+        app:layout_constraintTop_toBottomOf="@id/media_extractor"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"/>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

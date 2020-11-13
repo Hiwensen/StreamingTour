@@ -29,6 +29,8 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.media_extractor).setOnClickListener {
             startActivity(Intent(this, MediaExtractorActivity::class.java))
         }
+
+
     }
 
 }
