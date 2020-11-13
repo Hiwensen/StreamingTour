@@ -48,6 +48,7 @@
         <activity android:name=".camera.camerax.CameraxEnhanceActivity" />
         <activity android:name=".mediaExtractor.MediaExtractorActivity" />
         <activity android:name=".mediaMuxer.MediaMuxerActivity" />
+        <activity android:name=".mediacodec.MediaCodecActivity"/>
 
         <provider
             android:name="androidx.core.content.FileProvider"

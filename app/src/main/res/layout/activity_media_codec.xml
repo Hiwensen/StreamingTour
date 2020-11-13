@@ -1,54 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <Button
-        android:id="@+id/image_playground"
+        android:id="@+id/audio_encode"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="draw an image"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"/>
+        app:layout_constraintRight_toRightOf="parent"
+        android:text="audio encode"/>
 
     <Button
-        android:id="@+id/audio_playground"
+        android:id="@+id/audio_decode"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="record audio and play"
-        app:layout_constraintTop_toBottomOf="@id/image_playground"
+        app:layout_constraintTop_toBottomOf="@id/audio_encode"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"/>
+        app:layout_constraintRight_toRightOf="parent"
+        android:text="audio decode"/>
 
     <Button
-        android:id="@+id/camera_playground"
+        android:id="@+id/video_encode"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="camera playground"
-        app:layout_constraintTop_toBottomOf="@id/audio_playground"
+        app:layout_constraintTop_toBottomOf="@id/audio_decode"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"/>
+        app:layout_constraintRight_toRightOf="parent"
+        android:text="video encode"/>
 
     <Button
-        android:id="@+id/media_extractor"
+        android:id="@+id/video_decode"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="media extractor"
-        app:layout_constraintTop_toBottomOf="@id/camera_playground"
+        app:layout_constraintTop_toBottomOf="@id/video_encode"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"/>
+        app:layout_constraintRight_toRightOf="parent"
+        android:text="video decode"/>
 
     <Button
-        android:id="@+id/media_codec"
+        android:id="@+id/press_record"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="media codec"
-        app:layout_constraintTop_toBottomOf="@id/media_extractor"
+        app:layout_constraintTop_toBottomOf="@id/video_decode"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"/>
+        app:layout_constraintRight_toRightOf="parent"
+        android:text="press to record"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
