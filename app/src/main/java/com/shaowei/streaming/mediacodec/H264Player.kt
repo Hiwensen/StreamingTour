@@ -54,7 +54,6 @@ class H264Player {
                 }
 
                 val nextFrameStart = findFrameStart(fileBytes, totalSize, startIndex + 2)
-                val bufferInfo = MediaCodec.BufferInfo()
                 val availableIndex = mMediaCodec.dequeueInputBuffer(TIMEOUT_MICRO_SECONDS)
                 if (availableIndex > 0) {
                     // Found available input buffer, load it to mediaCodec
@@ -71,13 +70,22 @@ class H264Player {
             }
 
             // Get output data from mediaCodec
-
-
-
+            val bufferInfo = MediaCodec.BufferInfo()
+            val outputBufferIndex = mMediaCodec.dequeueOutputBuffer(bufferInfo, TIMEOUT_MICRO_SECONDS)
+            if (outputBufferIndex >= 0) {
+                mMediaCodec.releaseOutputBuffer(outputBufferIndex, true)
+            }
         }
 
         private fun findFrameStart(fileBytes: ByteArray, totalSize: Int, startIndex: Int): Int {
-
+            var j = 0
+            for (i in startIndex until totalSize - 4) {
+                val byte = fileBytes[i]
+                if (fileBytes[i] == 0x00 && fileBytes[i + 1] == 0x00 && fileBytes.get(i + 2) == 0x00 && fileBytes.get(i + 3) == 0x01) {
+                    return i
+                }
+            }
+            return -1
         }
 
         private fun getFileBytes(filePath: String): ByteArray {

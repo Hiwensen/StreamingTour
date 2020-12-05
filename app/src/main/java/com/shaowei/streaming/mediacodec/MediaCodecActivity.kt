@@ -43,7 +43,7 @@ class MediaCodecActivity : AppCompatActivity() {
             decodeVideo()
         }
 
-        findViewById<SurfaceView>(R.id.surface_view).holder.addCallback(object :SurfaceHolder.Callback{
+        findViewById<SurfaceView>(R.id.surface_view).holder.addCallback(object : SurfaceHolder.Callback {
             override fun surfaceChanged(holder: SurfaceHolder?, format: Int, width: Int, height: Int) {
 
             }
@@ -52,8 +52,9 @@ class MediaCodecActivity : AppCompatActivity() {
 
             }
 
-            override fun surfaceCreated(holder: SurfaceHolder?) {
-
+            override fun surfaceCreated(holder: SurfaceHolder) {
+                val surface = holder.surface
+                H264Player().play("", surface)
             }
 
         })
