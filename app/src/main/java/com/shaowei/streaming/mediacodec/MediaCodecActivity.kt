@@ -7,6 +7,8 @@ import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.os.Bundle
 import android.util.Log
+import android.view.SurfaceHolder
+import android.view.SurfaceView
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import com.shaowei.streaming.R
@@ -40,6 +42,21 @@ class MediaCodecActivity : AppCompatActivity() {
         findViewById<Button>(R.id.video_decode).setOnClickListener {
             decodeVideo()
         }
+
+        findViewById<SurfaceView>(R.id.surface_view).holder.addCallback(object :SurfaceHolder.Callback{
+            override fun surfaceChanged(holder: SurfaceHolder?, format: Int, width: Int, height: Int) {
+
+            }
+
+            override fun surfaceDestroyed(holder: SurfaceHolder?) {
+
+            }
+
+            override fun surfaceCreated(holder: SurfaceHolder?) {
+
+            }
+
+        })
     }
 
     override fun onResume() {
