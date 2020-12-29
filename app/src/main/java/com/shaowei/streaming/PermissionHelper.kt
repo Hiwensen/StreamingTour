@@ -64,10 +64,8 @@ fun requestCameraPermission(activity: Activity, requestWritePermission: Boolean)
 }
 
 fun requestWriteStoragePermission(activity: Activity) {
-    val showRationale = ActivityCompat.shouldShowRequestPermissionRationale(
-        activity,
-        Manifest.permission.WRITE_EXTERNAL_STORAGE
-    )
+    val showRationale =
+        ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE)
     if (showRationale) {
         Toast.makeText(
             activity,
@@ -75,15 +73,9 @@ fun requestWriteStoragePermission(activity: Activity) {
             Toast.LENGTH_LONG
         ).show()
     } else {
-
         // No explanation needed, we can request the permission.
-        val permissions =
-            arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-        ActivityCompat.requestPermissions(
-            activity,
-            permissions,
-            RC_PERMISSION_REQUEST
-        )
+        val permissions = arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        ActivityCompat.requestPermissions(activity, permissions, RC_PERMISSION_REQUEST)
     }
 }
 

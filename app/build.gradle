@@ -74,6 +74,8 @@ dependencies {
     // CameraX View class
     implementation "androidx.camera:camera-view:1.0.0-alpha13"
 
+    implementation "org.java-websocket:Java-WebSocket:1.4.0"
+
     // Unit testing
     testImplementation 'androidx.test.ext:junit:1.1.1'
     testImplementation 'androidx.test:rules:1.2.0'

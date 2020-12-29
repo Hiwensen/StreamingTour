@@ -49,6 +49,7 @@
         <activity android:name=".mediaExtractor.MediaExtractorActivity" />
         <activity android:name=".mediaMuxer.MediaMuxerActivity" />
         <activity android:name=".mediacodec.MediaCodecActivity"/>
+        <activity android:name=".cast.CastScreenActivity"/>
 
         <provider
             android:name="androidx.core.content.FileProvider"

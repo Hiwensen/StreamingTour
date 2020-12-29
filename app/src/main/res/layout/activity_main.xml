@@ -11,6 +11,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="draw an image"
+        android:textAllCaps="false"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"/>
@@ -19,7 +20,8 @@
         android:id="@+id/audio_playground"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="record audio and play"
+        android:text="audio record and play"
+        android:textAllCaps="false"
         app:layout_constraintTop_toBottomOf="@id/image_playground"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"/>
@@ -29,6 +31,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="camera playground"
+        android:textAllCaps="false"
         app:layout_constraintTop_toBottomOf="@id/audio_playground"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"/>
@@ -37,7 +40,8 @@
         android:id="@+id/media_extractor"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="media extractor"
+        android:text="media extractor playground"
+        android:textAllCaps="false"
         app:layout_constraintTop_toBottomOf="@id/camera_playground"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"/>
@@ -46,8 +50,19 @@
         android:id="@+id/media_codec"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="media codec"
+        android:text="media codec playground"
+        android:textAllCaps="false"
         app:layout_constraintTop_toBottomOf="@id/media_extractor"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"/>
+
+    <Button
+        android:id="@+id/cast_screen"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="cast screen playground"
+        android:textAllCaps="false"
+        app:layout_constraintTop_toBottomOf="@id/media_codec"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"/>
 

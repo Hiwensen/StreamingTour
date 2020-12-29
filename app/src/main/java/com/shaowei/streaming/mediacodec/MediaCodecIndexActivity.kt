@@ -14,9 +14,9 @@ import java.io.File
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.Executors
 
-private val TAG = MediaCodecActivity::class.java.simpleName
+private val TAG = MediaCodecIndexActivity::class.java.simpleName
 
-class MediaCodecActivity : AppCompatActivity() {
+class MediaCodecIndexActivity : AppCompatActivity() {
     private var mIsRecording: Boolean = false
     private lateinit var mAudioFormat: MediaFormat
     private lateinit var mAudioCodec: MediaCodec
