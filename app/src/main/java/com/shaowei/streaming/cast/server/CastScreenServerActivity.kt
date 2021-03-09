@@ -1,4 +1,4 @@
-package com.shaowei.streaming.cast
+package com.shaowei.streaming.cast.server
 
 import android.content.Context
 import android.content.Intent
@@ -8,20 +8,19 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.shaowei.streaming.R
-import com.shaowei.streaming.cast.server.SocketLive
 import com.shaowei.streaming.hasWriteStoragePermission
 import com.shaowei.streaming.requestWriteStoragePermission
 
-class CastScreenActivity : AppCompatActivity() {
+class CastScreenServerActivity : AppCompatActivity() {
     private lateinit var mediaProjectionManager: MediaProjectionManager
     private val REQUEST_CODE_SCREEN_CAPTURE = 1
     private var port = 11000
-    private var mSocketLive: SocketLive? = null
+    private var mSocketLiveServer: SocketLiveServer? = null
     private var mMediaProjection: MediaProjection? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_cast_screen)
+        setContentView(R.layout.activity_cast_server)
         if (!hasWriteStoragePermission(this)) {
             requestWriteStoragePermission(this)
         }
@@ -39,15 +38,15 @@ class CastScreenActivity : AppCompatActivity() {
 
         data?.let {
             val mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data)
-            val socketLive = SocketLive(port)
+            val socketLive = SocketLiveServer(port)
             socketLive.start(mediaProjection)
             mMediaProjection = mediaProjection
-            mSocketLive = socketLive
+            mSocketLiveServer = socketLive
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        mSocketLive?.close()
+        mSocketLiveServer?.close()
     }
 }

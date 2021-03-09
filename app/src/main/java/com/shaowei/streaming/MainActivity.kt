@@ -6,9 +6,10 @@ import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import com.shaowei.streaming.audio.AudioActivity
 import com.shaowei.streaming.camera.CameraIndexActivity
-import com.shaowei.streaming.cast.CastScreenActivity
+import com.shaowei.streaming.cast.server.CastScreenServerActivity
 import com.shaowei.streaming.image.ImageActivity
 import com.shaowei.streaming.mediaExtractor.MediaExtractorActivity
+import com.shaowei.streaming.mediacodec.MediaCodecIndexActivity
 
 class MainActivity : AppCompatActivity() {
 
@@ -31,8 +32,12 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, MediaExtractorActivity::class.java))
         }
 
-        findViewById<Button>(R.id.media_extractor).setOnClickListener {
-            startActivity(Intent(this, CastScreenActivity::class.java))
+        findViewById<Button>(R.id.media_codec).setOnClickListener {
+            startActivity(Intent(this, MediaCodecIndexActivity::class.java))
+        }
+
+        findViewById<Button>(R.id.cast_screen).setOnClickListener {
+            startActivity(Intent(this, CastScreenServerActivity::class.java))
         }
 
     }

@@ -78,10 +78,9 @@ class H264Player {
         }
 
         private fun findFrameStart(fileBytes: ByteArray, totalSize: Int, startIndex: Int): Int {
-            var j = 0
             for (i in startIndex until totalSize - 4) {
-                val byte = fileBytes[i]
-                if (fileBytes[i] == 0x00 && fileBytes[i + 1] == 0x00 && fileBytes.get(i + 2) == 0x00 && fileBytes.get(i + 3) == 0x01) {
+                if (fileBytes[i].toInt() == 0x00 && fileBytes[i + 1].toInt() == 0x00 && fileBytes[i + 2].toInt() ==
+                    0x00 && fileBytes[i + 3].toInt() == 0x01) {
                     return i
                 }
             }

@@ -7,8 +7,8 @@ import org.java_websocket.handshake.ClientHandshake
 import org.java_websocket.server.WebSocketServer
 import java.net.InetSocketAddress
 
-class SocketLive(private var port: Int) {
-    private val TAG = SocketLive::class.java.simpleName
+class SocketLiveServer(private var port: Int) {
+    private val TAG = SocketLiveServer::class.java.simpleName
     private val webSocketServer = ScreenWebSocketServer()
     private lateinit var webSocket: WebSocket
     private lateinit var codecLiveH265: CodecLiveH265

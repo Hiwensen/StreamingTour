@@ -15,7 +15,7 @@ import java.io.IOException
 import java.nio.ByteBuffer
 import kotlin.experimental.and
 
-class CodecLiveH265(private val socketLive: SocketLive, private val mediaProjection: MediaProjection) : Thread() {
+class CodecLiveH265(private val socketLiveServer: SocketLiveServer, private val mediaProjection: MediaProjection) : Thread() {
     private val MEDIACODEC_TIMEOUT_US = 10000L
     private val TAG = CodecLiveH265::class.java.simpleName
     private lateinit var mMediaCodec: MediaCodec
@@ -104,12 +104,12 @@ class CodecLiveH265(private val socketLive: SocketLive, private val mediaProject
                 val newBuf = ByteArray(vps_sps_pps_buf.size + bytes.size)
                 System.arraycopy(vps_sps_pps_buf, 0, newBuf, 0, vps_sps_pps_buf.size)
                 System.arraycopy(bytes, 0, newBuf, vps_sps_pps_buf.size, bytes.size)
-                socketLive.sendData(newBuf)
+                socketLiveServer.sendData(newBuf)
             }
             else -> {
                 val bytes = ByteArray(bufferInfo.size)
                 byteBuffer.get(bytes)
-                socketLive.sendData(bytes)
+                socketLiveServer.sendData(bytes)
                 Log.d(TAG, "video data" + bytes.contentToString())
             }
         }
