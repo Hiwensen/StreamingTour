@@ -15,7 +15,8 @@ import java.io.IOException
 import java.nio.ByteBuffer
 import kotlin.experimental.and
 
-class CodecLiveH265(private val socketLiveServer: SocketLiveServer, private val mediaProjection: MediaProjection) : Thread() {
+class CodecLiveH265(private val socketLiveServer: SocketLiveServer, private val mediaProjection: MediaProjection) :
+    Thread() {
     private val MEDIACODEC_TIMEOUT_US = 10000L
     private val TAG = CodecLiveH265::class.java.simpleName
     private lateinit var mMediaCodec: MediaCodec
@@ -44,7 +45,7 @@ class CodecLiveH265(private val socketLiveServer: SocketLiveServer, private val 
             val mediaCodec = MediaCodec.createEncoderByType(ENCODER_TYPE)
             mediaCodec.configure(videoFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
             val surface = mediaCodec.createInputSurface()
-            mediaProjection.createVirtualDisplay(
+            mVirtualDisplay = mediaProjection.createVirtualDisplay(
                 DISPLAY_NAME,
                 mWidth,
                 mHeight,
@@ -148,7 +149,6 @@ class CodecLiveH265(private val socketLiveServer: SocketLiveServer, private val 
     fun writeBytes(array: ByteArray) {
         var writer: FileOutputStream? = null
         try {
-            // 打开一个写文件器，构造函数中的第二个参数true表示以追加形式写文件
             writer = FileOutputStream(Environment.getExternalStorageDirectory().toString() + "/codec.h265", true)
             writer.write(array)
             writer.write('\n'.toInt())

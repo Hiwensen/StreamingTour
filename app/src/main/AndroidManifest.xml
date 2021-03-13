@@ -53,6 +53,9 @@
         <activity android:name=".mediaMuxer.MediaMuxerActivity" />
         <activity android:name=".mediacodec.MediaCodecActivity" />
         <activity android:name=".cast.server.CastScreenServerActivity" />
+        <service android:name=".cast.server.CaptureScreenService"
+            android:enabled="true"
+            android:foregroundServiceType="mediaProjection"/>
 
         <provider
             android:name="androidx.core.content.FileProvider"
