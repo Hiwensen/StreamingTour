@@ -7,6 +7,9 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.CAMERA" />
 
+    <!--    used by MediaProjection-->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
@@ -48,8 +51,8 @@
         <activity android:name=".camera.camerax.CameraxEnhanceActivity" />
         <activity android:name=".mediaExtractor.MediaExtractorActivity" />
         <activity android:name=".mediaMuxer.MediaMuxerActivity" />
-        <activity android:name=".mediacodec.MediaCodecActivity"/>
-        <activity android:name=".cast.server.CastScreenServerActivity"/>
+        <activity android:name=".mediacodec.MediaCodecActivity" />
+        <activity android:name=".cast.server.CastScreenServerActivity" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

@@ -13,4 +13,7 @@
     <string name="delete_button_alt">Delete</string>
     <string name="delete_dialog">Delete current photo?</string>
     <string name="delete_title">Confirm</string>
+    <string name="notification_title">capture screen</string>
+    <string name="notification_message">screen is recording</string>
+    <string name="ticker_text">ticker text</string>
 </resources>
