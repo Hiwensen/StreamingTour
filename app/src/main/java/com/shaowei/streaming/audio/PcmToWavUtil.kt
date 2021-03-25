@@ -10,9 +10,9 @@ import java.io.IOException
 /**
  * Translate pcm file to wav file
  */
-class PcmToWavUtil(private val mSampleRate: Int, private val mChannel: Int, encoding: Int) {
+class PcmToWavUtil(private val sampleRateInHz: Int, private val channelConfig: Int, audioFormat: Int) {
     private val TAG = PcmToWavUtil::class.java.simpleName
-    private val mBufferSize: Int = AudioRecord.getMinBufferSize(mSampleRate, mChannel, encoding)
+    private val mBufferSize: Int = AudioRecord.getMinBufferSize(sampleRateInHz, channelConfig, audioFormat)
 
     /**
      * @param sourceFilePath  path of the pcm source file
@@ -23,9 +23,9 @@ class PcmToWavUtil(private val mSampleRate: Int, private val mChannel: Int, enco
         val out: FileOutputStream
         val totalAudioLen: Long
         val totalDataLen: Long
-        val longSampleRate = mSampleRate.toLong()
-        val channels = if (mChannel == AudioFormat.CHANNEL_IN_MONO) 1 else 2
-        val byteRate = 16 * mSampleRate * channels / 8.toLong()
+        val longSampleRate = sampleRateInHz.toLong()
+        val channels = if (channelConfig == AudioFormat.CHANNEL_IN_MONO) 1 else 2
+        val byteRate = 16 * sampleRateInHz * channels / 8.toLong()
         val data = ByteArray(mBufferSize)
         try {
             `in` = FileInputStream(sourceFilePath)

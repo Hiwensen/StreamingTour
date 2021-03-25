@@ -4,7 +4,8 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
-import com.shaowei.streaming.audio.AudioActivity
+import com.shaowei.streaming.audio.clip.AudioClipActivity
+import com.shaowei.streaming.audio.record.AudioActivity
 import com.shaowei.streaming.camera.CameraIndexActivity
 import com.shaowei.streaming.cast.server.CastScreenServerActivity
 import com.shaowei.streaming.image.ImageActivity
@@ -20,8 +21,12 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, ImageActivity::class.java))
         }
 
-        findViewById<Button>(R.id.audio_playground).setOnClickListener {
+        findViewById<Button>(R.id.audio_record_playground).setOnClickListener {
             startActivity(Intent(this, AudioActivity::class.java))
+        }
+
+        findViewById<Button>(R.id.audio_clip).setOnClickListener {
+            startActivity(Intent(this, AudioClipActivity::class.java))
         }
 
         findViewById<Button>(R.id.camera_playground).setOnClickListener {
