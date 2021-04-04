@@ -40,7 +40,7 @@
         </activity>
 
         <activity android:name=".image.ImageActivity" />
-        <activity android:name=".audio.record.AudioActivity" />
+        <activity android:name=".audio.record.AudioRecordActivity" />
         <activity android:name=".audio.clip.AudioClipActivity"/>
         <activity android:name=".camera.CameraIndexActivity" />
         <activity android:name=".camera.CameraIntentActivity" />

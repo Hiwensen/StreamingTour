@@ -22,8 +22,8 @@ import kotlin.math.max
 
 private const val REQUEST_RECORD_AUDIO_PERMISSION = 200
 
-class AudioActivity : AppCompatActivity() {
-    private val TAG = AudioActivity::class.java.simpleName
+class AudioRecordActivity : AppCompatActivity() {
+    private val TAG = AudioRecordActivity::class.java.simpleName
 
     private lateinit var mAudioRecord: AudioRecord
     private lateinit var mFileOutputStream: FileOutputStream
@@ -36,8 +36,7 @@ class AudioActivity : AppCompatActivity() {
     private var mPCMFileName: String = ""
     private var mWAVFileName: String = ""
 
-    private val mMediaRecorderPlayground =
-        MediaRecorderPlayground()
+    private val mMediaRecorderPlayground = MediaRecorderPlayground()
     private val mMediaPlayerPlayground = MediaPlayerPlayground()
     private var mStartRecording = true
     private var mStartPlaying = true
