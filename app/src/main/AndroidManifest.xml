@@ -52,7 +52,7 @@
         <activity android:name=".camera.camerax.CameraxEnhanceActivity" />
         <activity android:name=".mediaExtractor.MediaExtractorActivity" />
         <activity android:name=".mediaMuxer.MediaMuxerActivity" />
-        <activity android:name=".mediacodec.MediaCodecActivity" />
+        <activity android:name=".mediacodec.MediaCodecIndexActivity" />
         <activity android:name=".cast.server.CastScreenServerActivity" />
         <service android:name=".cast.server.CaptureScreenService"
             android:enabled="true"

@@ -7,6 +7,9 @@ import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.os.Bundle
 import android.util.Log
+import android.view.Surface
+import android.view.SurfaceHolder
+import android.view.SurfaceView
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import com.shaowei.streaming.R
@@ -22,11 +25,7 @@ class MediaCodecIndexActivity : AppCompatActivity() {
     private lateinit var mAudioCodec: MediaCodec
     private lateinit var mVideoFormat: MediaFormat
     private lateinit var mVideoCodec: MediaCodec
-    private val mBuffer = ByteArray(2048)
-    private val MAX_BUFFER_SIZE = 1024 * 8
-    private val mExecutorService = Executors.newFixedThreadPool(2)
-    private val mQueue = ArrayBlockingQueue<ByteArray>(10)
-
+    private val mH264Player = H264AsyncPlayer()
 
     private var mOutputFormat: MediaFormat? = null
 
@@ -45,30 +44,34 @@ class MediaCodecIndexActivity : AppCompatActivity() {
             encodeVideo()
         }
 
-        findViewById<Button>(R.id.video_decode).setOnClickListener {
-            decodeVideo()
-        }
+        val surfaceView = findViewById<SurfaceView>(R.id.surface_view)
+        surfaceView.holder.addCallback(object : SurfaceHolder.Callback {
+            override fun surfaceChanged(holder: SurfaceHolder?, format: Int, width: Int, height: Int) {
 
-        findViewById<Button>(R.id.press_record).setOnClickListener {
-            pressRecord()
-        }
-    }
+            }
 
-    private fun pressRecord() {
-        if (mIsRecording) {
-            mIsRecording = false
-            return
-        }
+            override fun surfaceDestroyed(holder: SurfaceHolder?) {
+
+            }
+
+            override fun surfaceCreated(holder: SurfaceHolder) {
+                decodeVideo(holder.surface)
+            }
+
+        })
     }
 
     override fun onResume() {
         super.onResume()
-        getMediaFormat("")
         initCodec()
     }
 
-    private fun initCodec() {
+    override fun onStop() {
+        super.onStop()
+        mH264Player.stop()
+    }
 
+    private fun initCodec() {
 
     }
 
@@ -112,47 +115,12 @@ class MediaCodecIndexActivity : AppCompatActivity() {
         mAudioCodec.start()
     }
 
-    private fun decodeVideo() {
-
+    private fun decodeVideo(surface: Surface) {
+        mH264Player.play("", surface, this)
     }
 
     private fun encodeVideo() {
 
-    }
-
-    private fun createMediaCoded() {
-        // createDecoderByType(type:String)
-        // createEncoderByType(type:String)
-        // createByCodecName(name:String)
-
-    }
-
-    private fun getMediaFormat(filePath: String) {
-        val extractor = MediaExtractor()
-
-        val file = File(filePath)
-        extractor.setDataSource(file.absolutePath)
-        val trackCount = extractor.trackCount
-
-        for (i in 0 until trackCount) {
-            val mediaFormat = extractor.getTrackFormat(i)
-            val mime = mediaFormat.getString(MediaFormat.KEY_MIME)
-            Log.d(TAG, "mime:$mime")
-            if (mime?.startsWith("audio/") == true) {
-                val audioCodecName = findCodecNameForFormat(true, mediaFormat)
-                mAudioFormat = mediaFormat
-                mAudioCodec = MediaCodec.createByCodecName(audioCodecName)
-            }
-
-            if (mime?.startsWith("video/") == true) {
-                val videoCodecName = findCodecNameForFormat(true, mediaFormat)
-                mVideoFormat = mediaFormat
-                mVideoCodec = MediaCodec.createByCodecName(videoCodecName)
-            }
-
-        }
-
-        extractor.release()
     }
 
     private fun findCodecNameForFormat(encoder: Boolean, format: MediaFormat): String {
@@ -172,6 +140,5 @@ class MediaCodecIndexActivity : AppCompatActivity() {
 
         return ""
     }
-
 
 }
