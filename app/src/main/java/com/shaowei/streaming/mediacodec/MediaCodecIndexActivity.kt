@@ -3,7 +3,6 @@ package com.shaowei.streaming.mediacodec
 import android.media.MediaCodec
 import android.media.MediaCodecList
 import android.media.MediaCodecList.REGULAR_CODECS
-import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.os.Bundle
 import android.util.Log
@@ -13,9 +12,6 @@ import android.view.SurfaceView
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import com.shaowei.streaming.R
-import java.io.File
-import java.util.concurrent.ArrayBlockingQueue
-import java.util.concurrent.Executors
 
 private val TAG = MediaCodecIndexActivity::class.java.simpleName
 
@@ -116,7 +112,8 @@ class MediaCodecIndexActivity : AppCompatActivity() {
     }
 
     private fun decodeVideo(surface: Surface) {
-        mH264Player.play("", surface, this)
+        mH264Player.playAsync("", surface, this)
+//        mH264Player.playSync("", surface, this)
     }
 
     private fun encodeVideo() {
