@@ -13,40 +13,21 @@
         app:layout_constraintTop_toTopOf="parent"/>
 
     <Button
-        android:id="@+id/audio_encode"
+        android:id="@+id/video_decode_async"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
         app:layout_constraintTop_toBottomOf="@id/surface_view"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        android:text="audio encode"/>
+        android:text="video decode async"/>
 
     <Button
-        android:id="@+id/audio_decode"
+        android:id="@+id/video_decode_sync"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@id/audio_encode"
+        app:layout_constraintTop_toBottomOf="@id/video_decode_async"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        android:text="audio decode"/>
-
-    <Button
-        android:id="@+id/video_encode"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@id/audio_decode"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        android:text="video encode"/>
-
-    <Button
-        android:id="@+id/video_decode"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@id/video_encode"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        android:text="video decode"/>
+        android:text="video decode sync"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
