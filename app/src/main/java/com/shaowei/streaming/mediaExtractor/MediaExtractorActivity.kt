@@ -17,7 +17,7 @@ import java.io.IOException
 import java.nio.ByteBuffer
 
 class MediaExtractorActivity : AppCompatActivity() {
-    private val BUFFER_CAPACITY = 500 * 1024
+    private val BUFFER_CAPACITY = 500 * 1024 //500kb
     private lateinit var mVideoOutputStream: FileOutputStream
     private lateinit var mAudioOutputStream: FileOutputStream
 
@@ -135,7 +135,7 @@ class MediaExtractorActivity : AppCompatActivity() {
      */
     private fun extractRawFileNPlay(rawFileId: Int) {
         // the mediaExtractor must be recreated,
-        // or crash happen if extractor.setDataSource() be executed multiple times
+        // Otherwise crash happen if extractor.setDataSource() be executed multiple times
         val extractor = MediaExtractor()
         prepareOutputStream()
 

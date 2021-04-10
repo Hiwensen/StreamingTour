@@ -1,8 +1,5 @@
 package com.shaowei.streaming.mediacodec
 
-import android.media.MediaCodecList
-import android.media.MediaCodecList.REGULAR_CODECS
-import android.media.MediaFormat
 import android.os.Bundle
 import android.util.Log
 import android.view.Surface
@@ -16,28 +13,50 @@ import com.shaowei.streaming.R
 private val TAG = MediaCodecIndexActivity::class.java.simpleName
 
 class MediaCodecIndexActivity : AppCompatActivity() {
-    private lateinit var mVideoFormat: MediaFormat
-    private val mH264Player = H264Player()
-    private lateinit var mSurface:Surface
+    private lateinit var mH264Player: H264Player
+    private lateinit var mSurface: Surface
     private var mSurfaceReady = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_media_codec)
 
-        findViewById<Button>(R.id.video_decode_async).setOnClickListener{
+        findViewById<Button>(R.id.video_decode_async).setOnClickListener {
             if (mSurfaceReady) {
+                if (this::mH264Player.isInitialized) {
+                    mH264Player.stop()
+                }
+                mH264Player = H264Player()
                 mH264Player.playAsync(R.raw.sample, mSurface, this)
             } else {
-                Toast.makeText(this,"surface is not ready",Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "surface is not ready", Toast.LENGTH_SHORT).show()
             }
         }
 
-        findViewById<Button>(R.id.video_decode_sync).setOnClickListener{
+        findViewById<Button>(R.id.video_decode_sync).setOnClickListener {
             if (mSurfaceReady) {
+                if (this::mH264Player.isInitialized) {
+                    mH264Player.stop()
+                }
+
+                mH264Player = H264Player()
                 mH264Player.playSync(R.raw.sample, mSurface, this)
             } else {
-                Toast.makeText(this,"surface is not ready",Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "surface is not ready", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        findViewById<Button>(R.id.play_mp4_video).setOnClickListener {
+            if (mSurfaceReady) {
+                if (this::mH264Player.isInitialized) {
+                    mH264Player.stop()
+                }
+
+                //todo bugs when play big buck bunny file
+                mH264Player = H264Player()
+                mH264Player.playMP4Video(R.raw.shariver, mSurface, this)
+            } else {
+                Toast.makeText(this, "surface is not ready", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -62,6 +81,7 @@ class MediaCodecIndexActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         mH264Player.stop()
+        mH264Player.release()
     }
 
 }

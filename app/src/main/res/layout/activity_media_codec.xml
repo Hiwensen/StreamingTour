@@ -30,4 +30,13 @@
         app:layout_constraintRight_toRightOf="parent"
         android:text="video decode sync"/>
 
+    <Button
+        android:id="@+id/play_mp4_video"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/video_decode_sync"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:text="play mp4 video"/>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
