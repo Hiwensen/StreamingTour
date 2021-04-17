@@ -117,7 +117,9 @@ class AudioClipper {
     private fun getAudioTrackIndex(mediaExtractor: MediaExtractor): Int {
         for (i in 0 until mediaExtractor.trackCount) {
             val mediaFormat = mediaExtractor.getTrackFormat(i)
-            if (mediaFormat.getString(MediaFormat.KEY_MIME)?.startsWith(AUDIO_FORMAT_PREFIX) == true) {
+            val mime = mediaFormat.getString(MediaFormat.KEY_MIME)
+            Log.d(TAG,"mime:$mime")
+            if (mime?.startsWith(AUDIO_FORMAT_PREFIX) == true) {
                 return i
             }
         }

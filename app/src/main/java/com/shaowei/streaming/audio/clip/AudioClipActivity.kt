@@ -3,12 +3,14 @@ package com.shaowei.streaming.audio.clip
 import android.os.Build
 import android.os.Bundle
 import android.widget.Button
-import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.shaowei.streaming.R
+import java.util.concurrent.Executors
 
 class AudioClipActivity : AppCompatActivity() {
+    private val mFixedThreadPool = Executors.newFixedThreadPool(3)
+
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -19,10 +21,17 @@ class AudioClipActivity : AppCompatActivity() {
     }
 
     @RequiresApi(Build.VERSION_CODES.N)
-    fun startClip(){
-        Thread {
+    fun startClip() {
+        mFixedThreadPool.execute {
             val sourceResourceFd = resources.openRawResourceFd(R.raw.beautifulday)
+            // 20s ~ 30s
             AudioClipper().clip(sourceResourceFd, filesDir.absolutePath, 20 * 1000000, 30 * 1000000)
-        }.start()
+        }
     }
+
+    override fun onStop() {
+        super.onStop()
+        mFixedThreadPool.shutdown()
+    }
+
 }

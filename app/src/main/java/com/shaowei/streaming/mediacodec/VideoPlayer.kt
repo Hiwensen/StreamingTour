@@ -3,6 +3,7 @@ package com.shaowei.streaming.mediacodec
 import android.content.Context
 import android.media.MediaCodec
 import android.media.MediaCodec.BUFFER_FLAG_END_OF_STREAM
+import android.media.MediaCodec.createByCodecName
 import android.media.MediaCodecList
 import android.media.MediaExtractor
 import android.media.MediaFormat
@@ -10,14 +11,15 @@ import android.os.Build
 import android.util.Log
 import android.view.Surface
 import android.widget.Toast
+import com.shaowei.streaming.R
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStream
-import java.lang.Exception
 import java.nio.ByteBuffer
 
-class H264Player {
-    private val TAG = H264Player::class.java.simpleName
+class VideoPlayer {
+    private val TAG = VideoPlayer::class.java.simpleName
+    private val FLAG_DECODE = 0
     private lateinit var mMediaCodec: MediaCodec
     private val VIDEO_TYPE_H264 = "video/avc"
     private val FIND_NEXT_FRAME_OFFSET = 1
@@ -27,12 +29,17 @@ class H264Player {
     private val mContentHeight = 384
     private val CODEC_DEQUEUE_TIMEOUT_US = 10000L
     private var mCodecStatus = CodecStatus.IDLE
+    private var mQuitPlayback = false
 
     fun playAsync(rawFileId: Int, targetSurface: Surface, context: Context) {
+        val videoFormat = MediaFormat.createVideoFormat(VIDEO_TYPE_H264, mContentWidth, mContentHeight)
+        videoFormat.setInteger(MediaFormat.KEY_FRAME_RATE, 15)
         try {
-            mMediaCodec = MediaCodec.createDecoderByType(VIDEO_TYPE_H264)
+            val codecName = findCodecNameForFormat(videoFormat)
+            mMediaCodec = createByCodecName(codecName)
+//            mMediaCodec = MediaCodec.createDecoderByType(VIDEO_TYPE_H264)
         } catch (e: Exception) {
-            Toast.makeText(context,"fail to create codec",Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "fail to create codec", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -44,6 +51,8 @@ class H264Player {
 
         mMediaCodec.setCallback(object : MediaCodec.Callback() {
             override fun onOutputBufferAvailable(codec: MediaCodec, index: Int, info: MediaCodec.BufferInfo) {
+                if (mQuitPlayback) return
+
                 if (index >= 0) {
                     codec.releaseOutputBuffer(index, true)
                 }
@@ -54,7 +63,8 @@ class H264Player {
             }
 
             override fun onInputBufferAvailable(codec: MediaCodec, index: Int) {
-                Log.d(TAG, "onInputBufferAvailable,index:$index")
+                if (mQuitPlayback) return
+
                 codec.getInputBuffer(index)?.let {
                     it.clear()
                     val nextFrameStartPosition =
@@ -78,9 +88,6 @@ class H264Player {
             }
 
         })
-
-        val videoFormat = MediaFormat.createVideoFormat(VIDEO_TYPE_H264, mContentWidth, mContentHeight)
-        videoFormat.setInteger(MediaFormat.KEY_FRAME_RATE, 15)
         mMediaCodec.configure(videoFormat, targetSurface, null, 0)
         mOutputFormat = mMediaCodec.outputFormat
         mMediaCodec.start()
@@ -98,9 +105,11 @@ class H264Player {
         }
 
         try {
-            mMediaCodec = MediaCodec.createDecoderByType(mime)
+            val codecName = findCodecNameForFormat(videoFormat)
+            mMediaCodec = createByCodecName(codecName)
+//            mMediaCodec = MediaCodec.createDecoderByType(mime)
         } catch (e: Exception) {
-            Toast.makeText(context,"fail to create codec",Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "fail to create codec", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -149,11 +158,19 @@ class H264Player {
         mMediaCodec.start()
     }
 
+    /**
+     * @param rawFileId  Id of the file to be played stored at raw directory
+     * @param targetSurface Surface to rend the data
+     */
     fun playSync(rawFileId: Int, targetSurface: Surface, context: Context) {
+        val mediaFormat = MediaFormat.createVideoFormat(VIDEO_TYPE_H264, mContentWidth, mContentHeight)
+        mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE, 15)
         try {
-            mMediaCodec = MediaCodec.createDecoderByType(VIDEO_TYPE_H264)
+            val codecName = findCodecNameForFormat(mediaFormat)
+            mMediaCodec = createByCodecName(codecName)
+//            mMediaCodec = MediaCodec.createDecoderByType(VIDEO_TYPE_H264)
         } catch (e: Exception) {
-            Toast.makeText(context,"fail to create codec",Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "fail to create codec", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -166,16 +183,13 @@ class H264Player {
         }
 
         Log.d(TAG, "sourceFileSize:$sourceFileSize")
+        mMediaCodec.configure(mediaFormat, targetSurface, null, FLAG_DECODE)
         var startIndex = 0
-
-        val mediaFormat = MediaFormat.createVideoFormat(VIDEO_TYPE_H264, mContentWidth, mContentHeight)
-        mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE, 15)
-        mMediaCodec.configure(mediaFormat, targetSurface, null, 0)
         mOutputFormat = mMediaCodec.outputFormat
         mMediaCodec.start()
 
         Thread {
-            while (true) {
+            while (!mQuitPlayback) {
                 val nextFrameStartPosition =
                     findNextFrameStartPosition(bytes, startIndex + FIND_NEXT_FRAME_OFFSET, sourceFileSize)
                 if (nextFrameStartPosition < 0) {
@@ -188,7 +202,7 @@ class H264Player {
                     break
                 }
 
-                // Load data into mediaCoded
+                // Load data into input buffer
                 val inputBufferIndex = mMediaCodec.dequeueInputBuffer(CODEC_DEQUEUE_TIMEOUT_US)
                 if (inputBufferIndex >= 0) {
                     mMediaCodec.getInputBuffer(inputBufferIndex)?.let {
@@ -210,6 +224,10 @@ class H264Player {
                 }
             }
         }.start()
+    }
+
+    fun pause() {
+        mQuitPlayback = true
     }
 
     fun stop() {
@@ -282,7 +300,6 @@ class H264Player {
         var len: Int
         val size = 1024
         val byteArray = ByteArray(size)
-//        val byteArrayOutputStream = ByteArrayOutputStream()
         while (`is`.read(byteArray, 0, size).also { len = it } != -1) mVideoOutputStream.write(byteArray, 0, len)
         return mVideoOutputStream.toByteArray()
     }
@@ -326,22 +343,16 @@ class H264Player {
         return -1
     }
 
-    private fun findCodecNameForFormat(encoder: Boolean, format: MediaFormat): String {
-        val mime = format.getString(MediaFormat.KEY_MIME)
+    /**
+     * @param format The MediaFormat of the source file
+     */
+    private fun findCodecNameForFormat(format: MediaFormat): String {
         val mediaCodecList = MediaCodecList(MediaCodecList.REGULAR_CODECS)
         val codecInfos = mediaCodecList.codecInfos
         for (codecInfo in codecInfos) {
-            if (codecInfo.isEncoder != encoder) {
-                continue
-            }
-
-            val capabilitiesForType = codecInfo.getCapabilitiesForType(mime)
-            if (capabilitiesForType != null && capabilitiesForType.isFormatSupported(format)) {
-                return codecInfo.name
-            }
+            Log.d("codecInfoName",codecInfo.name)
         }
-
-        return ""
+        return mediaCodecList.findDecoderForFormat(format)
     }
 
     enum class CodecStatus {

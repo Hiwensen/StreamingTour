@@ -13,7 +13,7 @@ import com.shaowei.streaming.R
 private val TAG = MediaCodecIndexActivity::class.java.simpleName
 
 class MediaCodecIndexActivity : AppCompatActivity() {
-    private lateinit var mH264Player: H264Player
+    private lateinit var mVideoPlayer: VideoPlayer
     private lateinit var mSurface: Surface
     private var mSurfaceReady = false
 
@@ -23,11 +23,11 @@ class MediaCodecIndexActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.video_decode_async).setOnClickListener {
             if (mSurfaceReady) {
-                if (this::mH264Player.isInitialized) {
-                    mH264Player.stop()
+                if (this::mVideoPlayer.isInitialized) {
+                    mVideoPlayer.stop()
                 }
-                mH264Player = H264Player()
-                mH264Player.playAsync(R.raw.sample, mSurface, this)
+                mVideoPlayer = VideoPlayer()
+                mVideoPlayer.playAsync(R.raw.sample, mSurface, this)
             } else {
                 Toast.makeText(this, "surface is not ready", Toast.LENGTH_SHORT).show()
             }
@@ -35,12 +35,12 @@ class MediaCodecIndexActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.video_decode_sync).setOnClickListener {
             if (mSurfaceReady) {
-                if (this::mH264Player.isInitialized) {
-                    mH264Player.stop()
+                if (this::mVideoPlayer.isInitialized) {
+                    mVideoPlayer.stop()
                 }
 
-                mH264Player = H264Player()
-                mH264Player.playSync(R.raw.sample, mSurface, this)
+                mVideoPlayer = VideoPlayer()
+                mVideoPlayer.playSync(R.raw.sample, mSurface, this)
             } else {
                 Toast.makeText(this, "surface is not ready", Toast.LENGTH_SHORT).show()
             }
@@ -48,13 +48,13 @@ class MediaCodecIndexActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.play_mp4_video).setOnClickListener {
             if (mSurfaceReady) {
-                if (this::mH264Player.isInitialized) {
-                    mH264Player.stop()
+                if (this::mVideoPlayer.isInitialized) {
+                    mVideoPlayer.stop()
                 }
 
                 //todo bugs when play big buck bunny file
-                mH264Player = H264Player()
-                mH264Player.playMP4Video(R.raw.shariver, mSurface, this)
+                mVideoPlayer = VideoPlayer()
+                mVideoPlayer.playMP4Video(R.raw.shariver, mSurface, this)
             } else {
                 Toast.makeText(this, "surface is not ready", Toast.LENGTH_SHORT).show()
             }
@@ -78,10 +78,17 @@ class MediaCodecIndexActivity : AppCompatActivity() {
         })
     }
 
+    override fun onPause() {
+        super.onPause()
+        mVideoPlayer.pause()
+
+    }
+
     override fun onStop() {
         super.onStop()
-        mH264Player.stop()
-        mH264Player.release()
+        mSurface.release()
+        mVideoPlayer.stop()
+        mVideoPlayer.release()
     }
 
 }
