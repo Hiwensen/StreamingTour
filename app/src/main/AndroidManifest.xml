@@ -54,6 +54,7 @@
         <activity android:name=".mediaMuxer.MediaMuxerActivity" />
         <activity android:name=".mediacodec.MediaCodecIndexActivity" />
         <activity android:name=".cast.server.CastScreenServerActivity" />
+        <activity android:name=".audio.mix.AudioMixActivity"/>
         <activity android:name=".video.VideoClipActivity"/>
 
         <service android:name=".cast.server.CaptureScreenService"

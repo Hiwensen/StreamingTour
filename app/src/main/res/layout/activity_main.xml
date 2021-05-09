@@ -77,6 +77,16 @@
         app:layout_constraintRight_toRightOf="parent"/>
 
     <Button
+        android:id="@+id/audio_mix"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="audio mix"
+        android:textAllCaps="false"
+        app:layout_constraintTop_toBottomOf="@id/cast_screen"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"/>
+
+    <Button
         android:id="@+id/video_clip"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
