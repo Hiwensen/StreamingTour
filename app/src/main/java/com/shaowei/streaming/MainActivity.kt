@@ -11,6 +11,7 @@ import com.shaowei.streaming.cast.server.CastScreenServerActivity
 import com.shaowei.streaming.image.ImageActivity
 import com.shaowei.streaming.mediaExtractor.MediaExtractorActivity
 import com.shaowei.streaming.mediacodec.MediaCodecIndexActivity
+import com.shaowei.streaming.video.VideoClipActivity
 
 class MainActivity : AppCompatActivity() {
 
@@ -43,6 +44,10 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.cast_screen).setOnClickListener {
             startActivity(Intent(this, CastScreenServerActivity::class.java))
+        }
+
+        findViewById<Button>(R.id.video_clip).setOnClickListener {
+            startActivity(Intent(this, VideoClipActivity::class.java))
         }
 
     }
