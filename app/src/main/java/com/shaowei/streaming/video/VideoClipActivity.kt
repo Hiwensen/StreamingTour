@@ -95,11 +95,11 @@ class VideoClipActivity : AppCompatActivity() {
         }
     }
 
-    private fun startPlayNewVideo() {
-
+    private fun startClipVideo() {
+        cacheDir
     }
 
-    private fun startClipVideo() {
+    private fun startPlayNewVideo() {
 
     }
 
