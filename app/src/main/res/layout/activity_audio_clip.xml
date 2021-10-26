@@ -3,16 +3,27 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto">
+
     <Button
-        android:id="@+id/audio_clip"
+        android:id="@+id/audio_clip_sync"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:onClick="clipAudio"
+        android:onClick="clipAudioSync"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
-        android:text="start to clip audio"
-        />
+        android:text="start to clip audio sync"/>
+
+    <Button
+        android:id="@+id/audio_clip_async"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="clipAudioAsync"
+        app:layout_constraintTop_toBottomOf="@id/audio_clip_sync"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:layout_marginTop="20dp"
+        android:text="start to clip audio async"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

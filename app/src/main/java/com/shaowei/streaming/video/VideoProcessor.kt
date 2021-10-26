@@ -42,9 +42,8 @@ class VideoProcessor {
     }
 
     private fun decodeAudioFileToPCMAsync(
-        context: Context,
-        originalFilePath: String, startTimeUS: Int, endTimeUs: Int,
-        outputPCMFilePath: String
+        context: Context, originalFilePath: String, startTimeUS: Int,
+        endTimeUs: Int, outputPCMFilePath: String
     ) {
         if (endTimeUs > startTimeUS) {
             Log.e(TAG, "decodeAudioFileToPCM, start time greater than end time")
@@ -105,9 +104,8 @@ class VideoProcessor {
     private fun decodeAudioFileToPCMSync(
         context: Context,
         originalFilePath: String, startTimeUS: Int, endTimeUs: Int,
-        outputPCMFilePath: String
-    ) {
-        
+        outputPCMFilePath: String) {
+
     }
 
     private fun getTrack(mediaExtractor: MediaExtractor, audio: Boolean): Int {

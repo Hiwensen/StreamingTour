@@ -77,7 +77,7 @@ class AudioMixer {
             val dequeueInputIndex = mediaCodec.dequeueInputBuffer(DEQUEUE_ENQUE_TIME_OUT_US)
             if (dequeueInputIndex >= 0) {
                 val sampleTimeUs = mediaExtractor.sampleTime
-                if (sampleTimeUs.equals(-1)) {
+                if (sampleTimeUs == -1L) {
                     break
                 } else if (sampleTimeUs < startTimeUs) {
                     // discard data
