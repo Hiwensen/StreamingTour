@@ -7,7 +7,6 @@ import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
-import com.shaowei.streaming.audio.PcmToWavUtil
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.ByteBuffer
@@ -23,7 +22,7 @@ class VideoProcessor {
 
     @RequiresApi(Build.VERSION_CODES.N)
     fun clipAndMixVideo(
-        context: Context, sourceAssetFileDescriptor: AssetFileDescriptor, startPosition: Long, endPosition: Long,
+        context: Context, sourceAssetFileDescriptor: AssetFileDescriptor, startPositionUs: Long, endPositionUs: Long,
         backgroundMusicFileDescriptor: AssetFileDescriptor, cacheDir: File) {
         // Extract and decode original audio to PCM
         val originalAudioPCMFile = File(cacheDir, "originalAudio.pcm")
@@ -31,8 +30,8 @@ class VideoProcessor {
             context,
             sourceAssetFileDescriptor,
             originalAudioPCMFile.absolutePath,
-            startPosition,
-            endPosition)
+            startPositionUs,
+            endPositionUs)
 
 
         // Decode background music to PCM
@@ -41,10 +40,11 @@ class VideoProcessor {
             context,
             backgroundMusicFileDescriptor,
             backgroundMusicPCMFile.absolutePath,
-            startPosition,
-            endPosition)
+            startPositionUs,
+            endPositionUs)
 
         // Mix original audio and background music PCM file
+
 
         // Merge mixed audio and original video
 
@@ -98,7 +98,7 @@ class VideoProcessor {
                     mediaExtractor.release()
 
                     Toast.makeText(context,"clip video success", Toast.LENGTH_SHORT).show()
-                    Log.d(TAG, "clip audio success,file path:")
+                    Log.d(TAG, "clip audio success,file path:$desParentFilePath")
                 }
             }
 
@@ -171,11 +171,11 @@ class VideoProcessor {
         for (i in 0 until trackCount) {
             val trackFormat = mediaExtractor.getTrackFormat(i)
             val mime = trackFormat.getString(MediaFormat.KEY_MIME)
-            if (mime?.startsWith("/video") == true && !audio) {
+            if (mime?.startsWith("video/") == true && !audio) {
                 return i
             }
 
-            if (mime?.startsWith("/audio") == true && audio) {
+            if (mime?.startsWith("audio/") == true && audio) {
                 return i
             }
         }
@@ -183,4 +183,13 @@ class VideoProcessor {
         return TRACK_UNKNOWN
     }
 
+    private fun mixPcmFiles(originalAudioFilePath:String,originalVolumeWeight:Int,
+                            backgroundFilePath:String, backgroundVolumeWeight:Int,
+                            mixedPcmFilePath:String) {
+
+    }
+
+    private fun mixVideoAudio() {
+
+    }
 }

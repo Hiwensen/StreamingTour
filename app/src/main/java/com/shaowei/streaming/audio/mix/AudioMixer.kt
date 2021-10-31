@@ -1,10 +1,13 @@
 package com.shaowei.streaming.audio.mix
 
+import android.content.res.AssetFileDescriptor
 import android.media.AudioFormat
 import android.media.MediaCodec
 import android.media.MediaExtractor
 import android.media.MediaFormat
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import com.shaowei.streaming.audio.PcmToWavUtil
 import java.io.File
 import java.io.FileInputStream
@@ -13,6 +16,7 @@ import java.nio.ByteBuffer
 import kotlin.experimental.and
 import kotlin.experimental.or
 
+@RequiresApi(Build.VERSION_CODES.N)
 class AudioMixer {
     private val TRACK_INDEX_UNFOUND = -1
     private val TAG = AudioMixer::class.java.simpleName
@@ -20,18 +24,18 @@ class AudioMixer {
     private val AUDIO_FORMAT_PREFIX = "audio/"
 
     fun mixAudioTrack(
-        originalVideoFilePath: String, originalMusicFilePath: String, mixedAudioPath: String,
+        originalAudioFileDescriptor: AssetFileDescriptor, musicFileDescriptor: AssetFileDescriptor,
         cacheDir: File, startTimeUs: Long, endTimeUs: Long, originalVideoVolume: Int, musicVolume: Int
     ) {
-        val originalVideoPCMFile = File(cacheDir, "video.pcm")
-        val originalMusicPCMFile = File(cacheDir, "music.pcm")
+        val originalAudioPCMFile = File(cacheDir, "audio.pcm")
+        val musicPCMFile = File(cacheDir, "music.pcm")
         val mixedPCMFile = File(cacheDir, "mixed.pcm")
         val mixedMp3File = File(cacheDir, "mixed.mp3")
 
-        decodeToPCM(originalVideoFilePath, originalVideoPCMFile.absolutePath, startTimeUs, endTimeUs)
-        decodeToPCM(originalMusicFilePath, originalMusicPCMFile.absolutePath, startTimeUs, endTimeUs)
+        decodeToPCM(originalAudioFileDescriptor, originalAudioPCMFile.absolutePath, startTimeUs, endTimeUs)
+        decodeToPCM(musicFileDescriptor, musicPCMFile.absolutePath, startTimeUs, endTimeUs)
         mixPCM(
-            originalVideoPCMFile.absolutePath, originalMusicPCMFile.absolutePath, mixedPCMFile.absolutePath,
+            originalAudioPCMFile.absolutePath, musicPCMFile.absolutePath, mixedPCMFile.absolutePath,
             originalVideoVolume,
             musicVolume
         )
@@ -40,14 +44,15 @@ class AudioMixer {
             .pcmToWav(mixedPCMFile.absolutePath, mixedMp3File.absolutePath)
     }
 
-    private fun decodeToPCM(sourceFilePath: String, pcmFilePath: String, startTimeUs: Long, endTimeUs: Long): Boolean {
+    private fun decodeToPCM(fileDescriptor: AssetFileDescriptor, pcmFilePath: String, startTimeUs: Long, endTimeUs:
+    Long):Boolean {
         if (endTimeUs < startTimeUs) {
             Log.e(TAG, "endTime should greater than startTime")
             return false
         }
 
         val mediaExtractor = MediaExtractor()
-        mediaExtractor.setDataSource(sourceFilePath)
+        mediaExtractor.setDataSource(fileDescriptor)
         val audioTrackIndex = getAudioTrackIndex(mediaExtractor)
         if (audioTrackIndex == TRACK_INDEX_UNFOUND) {
             Log.e(TAG, "failed to find audio track index")
@@ -121,7 +126,6 @@ class AudioMixer {
 
         Log.d(TAG, "decode pcm file success")
         return true
-
     }
 
     private fun mixPCM(
@@ -181,6 +185,7 @@ class AudioMixer {
                 outputStreamMixedPCM.write(bufferMixed)
             }
         }
+        Log.d(TAG,"mix pcm success")
         inputStreamMovieAudio.close()
         inputStreamMusic.close()
         outputStreamMixedPCM.close()

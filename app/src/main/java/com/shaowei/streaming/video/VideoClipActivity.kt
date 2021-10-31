@@ -3,17 +3,19 @@ package com.shaowei.streaming.video
 import android.content.ContentResolver
 import android.media.MediaPlayer
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
 import android.widget.VideoView
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.jaygoo.widget.RangeSeekBar
 import com.shaowei.streaming.R
 
-
+@RequiresApi(Build.VERSION_CODES.N)
 class VideoClipActivity : AppCompatActivity() {
     private val TAG = VideoClipActivity::class.java.simpleName
     private lateinit var mVideoView: VideoView
@@ -27,6 +29,7 @@ class VideoClipActivity : AppCompatActivity() {
     private var mOriginalAudio = 0
     private var mBackgroundMusicAudio = 0
     private var mOriginalVideoDurationSecond = 0
+    private val mVideoProcessor = VideoProcessor()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -95,8 +98,13 @@ class VideoClipActivity : AppCompatActivity() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.N)
     private fun startClipVideo() {
-        cacheDir
+        mVideoProcessor.clipAndMixVideo(
+            applicationContext, resources.openRawResourceFd(R.raw.video_clip_original_video)
+            , 20*1000000, 30*1000000,
+            resources.openRawResourceFd(R.raw.audio_mix_music), cacheDir
+        )
     }
 
     private fun startPlayNewVideo() {
