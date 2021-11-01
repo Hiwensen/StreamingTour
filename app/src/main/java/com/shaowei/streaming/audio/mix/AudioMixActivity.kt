@@ -12,21 +12,16 @@ import java.io.File
 class AudioMixActivity : AppCompatActivity() {
     private val mAudioMixer = AudioMixer()
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_audio_mix)
-
-//        val originalVideoPath = "android.resource://$packageName/" + R.raw.audio_mix_original_video
-        val musicPath = "android.resource://$packageName/" + R.raw.audio_mix_music
-//        val videoFile = File("android.resource://$packageName/", "audio_mix_original_video.mp4")
-        val musicFile = File("android.resource://$packageName/", "audio_mix_music.mp3")
     }
 
     fun mixAudio(view: View) {
-        mAudioMixer.mixAudioTrack(
-            resources.openRawResourceFd(R.raw.beautifulday), resources.openRawResourceFd(
-                R.raw.audio_mix_music), cacheDir, 20 * 1000000, 30 * 1000000, 5, 5
-        )
+        Thread {
+            mAudioMixer.mixAudioTrack(
+                resources.openRawResourceFd(R.raw.big_buck_bunny), resources.openRawResourceFd(R.raw.beautifulday),
+                cacheDir, 20 * 1000000, 30 * 1000000, 80, 20)
+        }.start()
     }
 }

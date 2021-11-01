@@ -13,8 +13,6 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.nio.ByteBuffer
-import kotlin.experimental.and
-import kotlin.experimental.or
 
 @RequiresApi(Build.VERSION_CODES.N)
 class AudioMixer {
@@ -34,7 +32,7 @@ class AudioMixer {
 
         decodeToPCM(originalAudioFileDescriptor, originalAudioPCMFile.absolutePath, startTimeUs, endTimeUs)
         decodeToPCM(musicFileDescriptor, musicPCMFile.absolutePath, startTimeUs, endTimeUs)
-        mixPCM(
+        mixPCM2(
             originalAudioPCMFile.absolutePath, musicPCMFile.absolutePath, mixedPCMFile.absolutePath,
             originalVideoVolume,
             musicVolume
@@ -44,8 +42,10 @@ class AudioMixer {
             .pcmToWav(mixedPCMFile.absolutePath, mixedMp3File.absolutePath)
     }
 
-    private fun decodeToPCM(fileDescriptor: AssetFileDescriptor, pcmFilePath: String, startTimeUs: Long, endTimeUs:
-    Long):Boolean {
+    private fun decodeToPCM(
+        fileDescriptor: AssetFileDescriptor, pcmFilePath: String, startTimeUs: Long, endTimeUs:
+        Long
+    ): Boolean {
         if (endTimeUs < startTimeUs) {
             Log.e(TAG, "endTime should greater than startTime")
             return false
@@ -128,67 +128,68 @@ class AudioMixer {
         return true
     }
 
-    private fun mixPCM(
-        movieAudioPCMFilePath: String, musicPCMFilePath: String, mixedPCMFilePath: String,
-        movieAudioVolume: Int,
-        musicVolume: Int
+    /**
+     * @param videoVolume value is 0 ~ 100
+     * @param bgMusicVolume value is 0 ~ 100
+     */
+    private fun mixPCM2(
+        pcm1: String,
+        pcm2: String,
+        mixPcm: String,
+        videoVolume: Int,
+        bgMusicVolume: Int
     ) {
-        val volMovieAudio: Float = movieAudioVolume / 100f * 1
-        val volMusic: Float = musicVolume / 100f * 1
-
-        val bufferMovieAudio = ByteArray(2048)
-        val bufferMusic = ByteArray(2048)
-        val bufferMixed = ByteArray(2048)
-
-        val inputStreamMovieAudio = FileInputStream(movieAudioPCMFilePath)
-        val inputStreamMusic = FileInputStream(musicPCMFilePath)
-
-        val outputStreamMixedPCM = FileOutputStream(mixedPCMFilePath)
-        var tempMusic: Short
-        var tempMovieAudio: Short
-        var temp: Int
-
-        var movieAudioSteamEnd = false
-        var musicStreamEnd = false
-        while (!movieAudioSteamEnd || !musicStreamEnd) {
-            if (!movieAudioSteamEnd) {
-                movieAudioSteamEnd = inputStreamMovieAudio.read(bufferMovieAudio) == -1
-                // write the movie audio data to buffer first
-                System.arraycopy(bufferMovieAudio, 0, bufferMixed, 0, bufferMovieAudio.size)
+        val volume1: Float = videoVolume * 1.0f / 100
+        val volume2: Float = bgMusicVolume * 1.0f / 100
+        val buffSize = 2048
+        val buffer1 = ByteArray(buffSize)
+        val buffer2 = ByteArray(buffSize)
+        val buffer3 = ByteArray(buffSize)
+        val fis1 = FileInputStream(pcm1)
+        val fis2 = FileInputStream(pcm2)
+        val fosMix = FileOutputStream(mixPcm)
+        var isEnd1 = false
+        var isEnd2 = false
+        var temp1: Short
+        var temp2: Short
+        var tempMixed: Int
+        while (!isEnd1 || !isEnd2) {
+            if (!isEnd1) {
+                isEnd1 = fis1.read(buffer1) == -1
             }
+            if (!isEnd2) {
+                isEnd2 = fis2.read(buffer2) == -1
+                for (i in buffer2.indices step 2) {
+                    // java version
+                    // temp1 = (short) ((buffer1[i] & 0xff) | (buffer1[i + 1] & 0xff) << 8);
+                    // temp2 = (short) ((buffer2[i] & 0xff) | (buffer2[i + 1] & 0xff) << 8);
 
-            if (!musicStreamEnd) {
-                musicStreamEnd = inputStreamMusic.read(bufferMusic) == -1
-                // one voice value is two bytes
-                var i = 0
+                    temp1 = ((buffer1[i].toInt() and 0xff) or ((buffer1[i + 1].toInt() and 0xff) shl 8)).toShort()
+                    temp2 = ((buffer2[i].toInt() and 0xff) or ((buffer2[i + 1].toInt() and 0xff) shl 8)).toShort()
 
-                while (i < bufferMusic.size) {
-                    tempMovieAudio =
-                        (((bufferMovieAudio[i] and 0xff.toByte()) or (bufferMovieAudio[i + 1] and 0xff.toByte())).toLong() shl 8)
-                            .toShort()
-                    tempMusic =
-                        (((bufferMusic[i] and 0xff.toByte() or (bufferMusic[i + 1] and 0xff.toByte())).toLong() shl 8))
-                            .toShort()
-
-                    temp = (tempMovieAudio * volMovieAudio + tempMusic * volMusic).toInt()
-
-                    if (temp > Short.MAX_VALUE) {
-                        temp = Short.MAX_VALUE.toInt()
-                    } else if (temp < Short.MIN_VALUE) {
-                        temp = Short.MIN_VALUE.toInt()
+                    // The sum of two short values may be greater than short
+                    tempMixed = (temp1 * volume1 + temp2 * volume2).toInt()
+                    // The range of short value is [-32768 ~ 32767]
+                    if (tempMixed > Short.MAX_VALUE) {
+                        tempMixed = Short.MAX_VALUE.toInt()
+                    } else if (tempMixed < Short.MIN_VALUE) {
+                        tempMixed = Short.MIN_VALUE.toInt()
                     }
 
-                    bufferMixed[i] = (temp and 0xFF).toByte()
-                    bufferMixed[i + 1] = (temp ushr 8 and 0xFF).toByte()
-                    i += 2
+                    // java version
+                    // buffer3[i] = (byte) (temp & 0x00ff);
+                    // buffer3[i + 1] = (byte) ((temp & 0xFF00) >> 8 );
+                    buffer3[i] = (tempMixed and 0x00ff).toByte()
+                    buffer3[i + 1] = (tempMixed and 0xff00).shr(8).toByte()
                 }
-                outputStreamMixedPCM.write(bufferMixed)
+                fosMix.write(buffer3)
             }
         }
-        Log.d(TAG,"mix pcm success")
-        inputStreamMovieAudio.close()
-        inputStreamMusic.close()
-        outputStreamMixedPCM.close()
+        fis1.close()
+        fis2.close()
+        fosMix.flush()
+        fosMix.close()
+        Log.d(TAG, "mixPcm:$mixPcm")
     }
 
     private fun getAudioTrackIndex(mediaExtractor: MediaExtractor): Int {
