@@ -100,11 +100,13 @@ class VideoClipActivity : AppCompatActivity() {
 
     @RequiresApi(Build.VERSION_CODES.N)
     private fun startClipVideo() {
-        mVideoProcessor.clipAndMixVideo(
-            applicationContext, resources.openRawResourceFd(R.raw.video_clip_original_video)
-            , 20*1000000, 30*1000000,
-            resources.openRawResourceFd(R.raw.audio_mix_music), cacheDir
-        )
+        Thread{
+            mVideoProcessor.clipAndMixVideo(
+                applicationContext, resources.openRawResourceFd(R.raw.video_clip_original_video)
+                , 20*1000000, 30*1000000,
+                resources.openRawResourceFd(R.raw.audio_mix_music), cacheDir
+            )
+        }.start()
     }
 
     private fun startPlayNewVideo() {

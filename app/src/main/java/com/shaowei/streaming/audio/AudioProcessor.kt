@@ -1,4 +1,4 @@
-package com.shaowei.streaming.audio.mix
+package com.shaowei.streaming.audio
 
 import android.content.res.AssetFileDescriptor
 import android.media.AudioFormat
@@ -8,43 +8,23 @@ import android.media.MediaFormat
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
-import com.shaowei.streaming.audio.PcmToWavUtil
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.nio.ByteBuffer
+import kotlin.math.abs
 
 @RequiresApi(Build.VERSION_CODES.N)
-class AudioMixer {
+object AudioProcessor {
+    private val TAG = AudioProcessor::class.java.simpleName
     private val TRACK_INDEX_UNFOUND = -1
-    private val TAG = AudioMixer::class.java.simpleName
     private val DEQUEUE_ENQUE_TIME_OUT_US = 100000L
     private val AUDIO_FORMAT_PREFIX = "audio/"
+    private val SAMPLE_TIME_OFFSET_MICRO_SECONDS = 100000 // 0.1s
+    private val SAMPLE_RATE = 44100
 
-    fun mixAudioTrack(
-        originalAudioFileDescriptor: AssetFileDescriptor, musicFileDescriptor: AssetFileDescriptor,
-        cacheDir: File, startTimeUs: Long, endTimeUs: Long, originalVideoVolume: Int, musicVolume: Int
-    ) {
-        val originalAudioPCMFile = File(cacheDir, "audio.pcm")
-        val musicPCMFile = File(cacheDir, "music.pcm")
-        val mixedPCMFile = File(cacheDir, "mixed.pcm")
-        val mixedMp3File = File(cacheDir, "mixed.mp3")
-
-        decodeToPCM(originalAudioFileDescriptor, originalAudioPCMFile.absolutePath, startTimeUs, endTimeUs)
-        decodeToPCM(musicFileDescriptor, musicPCMFile.absolutePath, startTimeUs, endTimeUs)
-        mixPCM(
-            originalAudioPCMFile.absolutePath, musicPCMFile.absolutePath, mixedPCMFile.absolutePath,
-            originalVideoVolume,
-            musicVolume
-        )
-
-        PcmToWavUtil(44100, AudioFormat.CHANNEL_IN_STEREO, AudioFormat.ENCODING_PCM_16BIT)
-            .pcmToWav(mixedPCMFile.absolutePath, mixedMp3File.absolutePath)
-    }
-
-    private fun decodeToPCM(
-        fileDescriptor: AssetFileDescriptor, pcmFilePath: String, startTimeUs: Long, endTimeUs:
-        Long
+    fun decodeToPCMSync(
+        fileDescriptor: AssetFileDescriptor, pcmFilePath: String, startTimeUs: Long, endTimeUs: Long
     ): Boolean {
         if (endTimeUs < startTimeUs) {
             Log.e(TAG, "endTime should greater than startTime")
@@ -128,11 +108,124 @@ class AudioMixer {
         return true
     }
 
+    fun decodeToPCMAsync(
+        sourceFilePath: AssetFileDescriptor,
+        pcmFilePath: String,
+        startTimeUs: Long,
+        endTimeUs: Long
+    ): Boolean {
+        if (endTimeUs < startTimeUs) {
+            Log.e(TAG, "endTime should greater than startTime")
+            return false
+        }
+
+        val mediaExtractor = MediaExtractor()
+        mediaExtractor.setDataSource(sourceFilePath)
+        val audioTrackIndex = getAudioTrackIndex(mediaExtractor)
+        if (audioTrackIndex == TRACK_INDEX_UNFOUND) {
+            Log.e(TAG, "failed to find audio track index")
+            return false
+        }
+
+        mediaExtractor.selectTrack(audioTrackIndex)
+        mediaExtractor.seekTo(startTimeUs, MediaExtractor.SEEK_TO_CLOSEST_SYNC)
+        val oriAudioTrackFormat = mediaExtractor.getTrackFormat(audioTrackIndex)
+        var maxBufferSize = 100 * 1000 // 100k
+        if (oriAudioTrackFormat.containsKey(MediaFormat.KEY_MAX_INPUT_SIZE)) {
+            maxBufferSize = oriAudioTrackFormat.getInteger(MediaFormat.KEY_MAX_INPUT_SIZE)
+        }
+
+        val byteBuffer = ByteBuffer.allocateDirect(maxBufferSize)
+
+        val mediaCodec = MediaCodec.createDecoderByType(oriAudioTrackFormat.getString(MediaFormat.KEY_MIME) ?: "")
+        // Pass CONFIGURE_FLAG_ENCODE to flags if the mediaCodec is used as an encoder
+        mediaCodec.configure(oriAudioTrackFormat, null, null, 0)
+
+        val pcmFile = File(pcmFilePath)
+        val fileChannel = FileOutputStream(pcmFile).channel
+
+        mediaCodec.setCallback(object : MediaCodec.Callback() {
+            override fun onOutputBufferAvailable(codec: MediaCodec, index: Int, info: MediaCodec.BufferInfo) {
+                Log.d(TAG, "onOutputBufferAvailable, index:$index, flags:${info.flags}")
+                if (index >= 0) {
+                    val decodeOutputBuffer = codec.getOutputBuffer(index)
+                    fileChannel.write(decodeOutputBuffer)
+                    codec.releaseOutputBuffer(index, false)
+                }
+
+                if (info.flags == MediaCodec.BUFFER_FLAG_END_OF_STREAM) {
+                    Log.d(TAG, "onOutputBufferAvailable, end of stream")
+                    fileChannel.close()
+                    mediaExtractor.release()
+
+                    Log.d(TAG, "decode pcm file success,file path:$pcmFilePath")
+                }
+            }
+
+            override fun onInputBufferAvailable(codec: MediaCodec, index: Int) {
+                val sampleTimeUs = mediaExtractor.sampleTime
+                when {
+                    sampleTimeUs == -1L -> {
+                        return
+                    }
+                    sampleTimeUs < startTimeUs -> {
+                        // discard data
+                        mediaExtractor.advance()
+                        return
+                    }
+                    sampleTimeUs > endTimeUs -> {
+                        return
+                    }
+
+                    // Get the data between startTime and endTime
+                    // Load the data to mediaCodec
+                    else -> {
+                        codec.getInputBuffer(index)?.let {
+                            it.clear()
+
+                            val size = mediaExtractor.readSampleData(byteBuffer, 0)
+                            val flags = if (abs(sampleTimeUs - endTimeUs) < SAMPLE_TIME_OFFSET_MICRO_SECONDS) {
+                                Log.d(TAG, "set end of stream flag")
+                                MediaCodec.BUFFER_FLAG_END_OF_STREAM
+                            } else {
+                                mediaExtractor.sampleFlags
+                            }
+
+                            val content = ByteArray(byteBuffer.remaining())
+                            byteBuffer.get(content)
+                            it.put(content)
+
+                            Log.d(
+                                TAG, "onInputBufferAvailable, index:$index, size:$size, " +
+                                        "sampleTime:${sampleTimeUs}, flags:$flags"
+                            )
+                            codec.queueInputBuffer(index, 0, size, sampleTimeUs, flags)
+                            mediaExtractor.advance()
+                        }
+                    }
+                }
+
+            }
+
+            override fun onOutputFormatChanged(codec: MediaCodec, format: MediaFormat) {
+                Log.d(TAG, "onOutputFormatChanged:${format.getString(MediaFormat.KEY_MIME)}")
+            }
+
+            override fun onError(codec: MediaCodec, e: MediaCodec.CodecException) {
+                Log.e(TAG, "mediaCodec error:$e")
+            }
+
+        })
+
+        mediaCodec.start()
+        return true
+    }
+
     /**
      * @param videoVolume value is 0 ~ 100
      * @param bgMusicVolume value is 0 ~ 100
      */
-    private fun mixPCM(
+    fun mixPCM(
         pcm1: String,
         pcm2: String,
         mixPcm: String,
@@ -189,7 +282,7 @@ class AudioMixer {
         fis2.close()
         fosMix.flush()
         fosMix.close()
-        Log.d(TAG, "mixPcm:$mixPcm")
+        Log.d(TAG, "mix pcm success:$mixPcm")
     }
 
     private fun getAudioTrackIndex(mediaExtractor: MediaExtractor): Int {
@@ -202,5 +295,13 @@ class AudioMixer {
             }
         }
         return TRACK_INDEX_UNFOUND
+    }
+
+    fun pcmToWav(pcmFilePath: String, wavFilePath: String) {
+        PcmToWavUtil(
+            SAMPLE_RATE, channelConfig = AudioFormat.CHANNEL_IN_STEREO, audioFormat = AudioFormat
+                .ENCODING_PCM_16BIT
+        ).pcmToWav(pcmFilePath, wavFilePath)
+        Log.d(TAG, "pcm to wav success")
     }
 }
