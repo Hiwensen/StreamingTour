@@ -91,7 +91,7 @@ class MediaExtractorActivity : AppCompatActivity() {
         while (true) {
             // Read data from mediaExtractor
             val readSampleData = videoExtractor.readSampleData(byteBuffer, 0)
-            if (readSampleData < 0) {
+            if (readSampleData <= 0) {
                 break
             }
 
@@ -108,7 +108,7 @@ class MediaExtractorActivity : AppCompatActivity() {
         while (true) {
             // Read data from mediaExtractor
             val readSampleData = audioExtractor.readSampleData(byteBuffer, 0)
-            if (readSampleData < 0) {
+            if (readSampleData <= 0) {
                 break
             }
 

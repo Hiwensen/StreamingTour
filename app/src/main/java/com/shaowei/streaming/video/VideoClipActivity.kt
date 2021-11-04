@@ -9,11 +9,13 @@ import android.util.Log
 import android.widget.Button
 import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
+import android.widget.Toast
 import android.widget.VideoView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.jaygoo.widget.RangeSeekBar
 import com.shaowei.streaming.R
+import java.io.File
 
 @RequiresApi(Build.VERSION_CODES.N)
 class VideoClipActivity : AppCompatActivity() {
@@ -23,6 +25,7 @@ class VideoClipActivity : AppCompatActivity() {
     private lateinit var mOriginalAudioSeekBar: SeekBar
     private lateinit var mBackgroundMusicSeekBar: SeekBar
     private lateinit var mStartClipButton: Button
+    private lateinit var mStartMixAudioVideoButton: Button
     private lateinit var mStartPlayNewVideo: Button
     private var mVideoStartPosition = 0f
     private var mVideoEndPosition = 0f
@@ -77,7 +80,6 @@ class VideoClipActivity : AppCompatActivity() {
         }
 
         mStartPlayNewVideo.setOnClickListener { startPlayNewVideo() }
-
     }
 
     private fun initVideoView() {
@@ -100,17 +102,22 @@ class VideoClipActivity : AppCompatActivity() {
 
     @RequiresApi(Build.VERSION_CODES.N)
     private fun startClipVideo() {
-        Thread{
-            mVideoProcessor.clipAndMixVideo(
-                applicationContext, resources.openRawResourceFd(R.raw.video_clip_original_video)
-                , 20*1000000, 30*1000000,
+        Thread {
+            mVideoProcessor.clipAndMixVideo(resources.openRawResourceFd(R.raw.video_clip_original_video)
+                , 20 * 1000000, 30 * 1000000,
                 resources.openRawResourceFd(R.raw.audio_mix_music), cacheDir
-            )
+            ) { startPlayNewVideo() }
         }.start()
     }
 
     private fun startPlayNewVideo() {
-
+        runOnUiThread {
+            Toast.makeText(this,"mix audio video success",Toast.LENGTH_SHORT).show()
+//            mVideoView.stopPlayback()
+//            val mixedMp4File = File(cacheDir, "mixed.mp4")
+//            mVideoView.setVideoPath(mixedMp4File.absolutePath)
+//            mVideoView.start()
+        }
     }
 
 }
