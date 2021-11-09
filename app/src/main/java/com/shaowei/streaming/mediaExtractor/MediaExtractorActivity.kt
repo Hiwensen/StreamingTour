@@ -9,13 +9,16 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.shaowei.streaming.*
+import com.shaowei.streaming.video.VideoProcessor
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.nio.ByteBuffer
 
+@RequiresApi(Build.VERSION_CODES.N)
 class MediaExtractorActivity : AppCompatActivity() {
     private val BUFFER_CAPACITY = 500 * 1024 //500kb
     private lateinit var mVideoOutputStream: FileOutputStream
@@ -35,12 +38,20 @@ class MediaExtractorActivity : AppCompatActivity() {
         }
 
         findViewById<Button>(R.id.compose).setOnClickListener {
-            composeVideoAudio()
+            composeVideoAudio2()
         }
 
         if (!(hasWriteStoragePermission(this) && hasReadStoragePermission(this))) {
             requestReadWriteStoragePermission(this)
         }
+    }
+
+    private fun composeVideoAudio2() {
+        val videoFile = File(this.filesDir, "videocanplay.mp4")
+        val audioFile = File(this.filesDir, "audiocanplay.wav")
+        val composedFile = File(cacheDir, "composed.mp4")
+        VideoProcessor.mixVideoAudio(videoPath = videoFile.absolutePath,audioPath = audioFile.absolutePath
+            , outputVideoPath = composedFile.absolutePath, mixAudioVideoSuccess = {})
     }
 
     private fun composeVideoAudio() {

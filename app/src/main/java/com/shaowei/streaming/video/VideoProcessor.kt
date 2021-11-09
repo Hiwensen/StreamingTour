@@ -10,7 +10,7 @@ import java.io.File
 import java.nio.ByteBuffer
 
 @RequiresApi(Build.VERSION_CODES.N)
-class VideoProcessor {
+object VideoProcessor {
     private val TAG = VideoProcessor::class.java.simpleName
     private val TRACK_UNKNOWN = -1
     private val SAMPLE_TIME_OFFSET_MICRO_SECONDS = 100000 // 0.1s
@@ -31,7 +31,8 @@ class VideoProcessor {
             sourceAssetFileDescriptor,
             originalAudioPCMFile.absolutePath,
             startPositionUs,
-            endPositionUs)
+            endPositionUs
+        )
 
         // Decode background music to PCM
         val backgroundMusicPCMFile = File(cacheDir, "backgroundAudio.pcm")
@@ -201,7 +202,90 @@ class VideoProcessor {
         }
     }
 
-    private fun getTrack(mediaExtractor: MediaExtractor, audio: Boolean): Int {
+    fun mixVideoAudio(
+        videoPath: String,
+        audioPath: String,
+        outputVideoPath: String,
+        mixAudioVideoSuccess: () -> Unit
+    ) {
+        val mediaMuxer = MediaMuxer(outputVideoPath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
+        // Prepare video track
+        val videoExtractor = MediaExtractor()
+        videoExtractor.setDataSource(videoPath)
+        val videoIndex: Int = getTrack(videoExtractor, false)
+        videoExtractor.selectTrack(videoIndex)
+        val videoFormat = videoExtractor.getTrackFormat(videoIndex)
+        val videoMaxBufferSize = if (videoFormat.containsKey(MediaFormat.KEY_MAX_INPUT_SIZE)) {
+            videoFormat.getInteger(MediaFormat.KEY_MAX_INPUT_SIZE)
+        } else {
+            MAX_BUFFER_SIZE_DEFAULT
+        }
+        val videoTrackIndex = mediaMuxer.addTrack(videoFormat)
+
+        val audioExtractor = MediaExtractor()
+        audioExtractor.setDataSource(audioPath)
+        val audioTrack = getTrack(audioExtractor, true)
+        audioExtractor.selectTrack(audioTrack)
+        val audioFormat = audioExtractor.getTrackFormat(audioTrack)
+        val audioMaxBufferSize = if (audioFormat.containsKey(MediaFormat.KEY_MAX_INPUT_SIZE)) {
+            audioFormat.getInteger(MediaFormat.KEY_MAX_INPUT_SIZE)
+        } else {
+            MAX_BUFFER_SIZE_DEFAULT
+        }
+        val audioTrackIndex = mediaMuxer.addTrack(audioFormat)
+        mediaMuxer.start()
+
+        val videoBuffer = ByteBuffer.allocate(videoMaxBufferSize)
+        val bufferInfo = MediaCodec.BufferInfo()
+
+        //start to write video date to mediaMuxer
+        while (true) {
+            val sampleTimeUs = videoExtractor.sampleTime
+            if (sampleTimeUs == -1L) {
+                break
+            }
+
+            //Set the new time
+            bufferInfo.presentationTimeUs = sampleTimeUs
+            bufferInfo.flags = videoExtractor.sampleFlags
+            bufferInfo.size = videoExtractor.readSampleData(videoBuffer, 0)
+            if (bufferInfo.size < 0) {
+                break
+            }
+            mediaMuxer.writeSampleData(videoTrackIndex, videoBuffer, bufferInfo)
+            videoExtractor.advance()
+        }
+
+        val audioBuffer = ByteBuffer.allocate(audioMaxBufferSize)
+        while (true) {
+            val sampleTimeUs = audioExtractor.sampleTime
+            if (sampleTimeUs == -1L) {
+                break
+            }
+
+            //Set the new time
+            bufferInfo.presentationTimeUs = sampleTimeUs
+            bufferInfo.flags = audioExtractor.sampleFlags
+            bufferInfo.size = audioExtractor.readSampleData(audioBuffer, 0)
+            if (bufferInfo.size < 0) {
+                break
+            }
+            mediaMuxer.writeSampleData(audioTrackIndex, audioBuffer, bufferInfo)
+            audioExtractor.advance()
+        }
+
+        try {
+            audioExtractor.release()
+            videoExtractor.release()
+            mediaMuxer.release()
+            Log.d(TAG, "mix audio video success")
+            mixAudioVideoSuccess.invoke()
+        } catch (e: Exception) {
+            Log.e(TAG, "mix audio video fail")
+        }
+    }
+
+    fun getTrack(mediaExtractor: MediaExtractor, audio: Boolean): Int {
         val trackCount = mediaExtractor.trackCount
         for (i in 0 until trackCount) {
             val trackFormat = mediaExtractor.getTrackFormat(i)

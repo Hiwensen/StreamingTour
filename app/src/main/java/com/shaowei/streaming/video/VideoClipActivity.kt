@@ -32,7 +32,6 @@ class VideoClipActivity : AppCompatActivity() {
     private var mOriginalAudio = 0
     private var mBackgroundMusicAudio = 0
     private var mOriginalVideoDurationSecond = 0
-    private val mVideoProcessor = VideoProcessor()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -103,7 +102,7 @@ class VideoClipActivity : AppCompatActivity() {
     @RequiresApi(Build.VERSION_CODES.N)
     private fun startClipVideo() {
         Thread {
-            mVideoProcessor.clipAndMixVideo(resources.openRawResourceFd(R.raw.video_clip_original_video)
+            VideoProcessor.clipAndMixVideo(resources.openRawResourceFd(R.raw.video_clip_original_video)
                 , 20 * 1000000, 30 * 1000000,
                 resources.openRawResourceFd(R.raw.audio_mix_music), cacheDir
             ) { startPlayNewVideo() }
