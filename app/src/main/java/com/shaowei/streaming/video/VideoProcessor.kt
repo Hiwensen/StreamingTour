@@ -55,47 +55,50 @@ object VideoProcessor {
         AudioProcessor.pcmToWav(mixedPCMFile.absolutePath, mixedWavFile.absolutePath)
 
         // Merge mixed audio and original video
-        val mixedVideoFile = File(cacheDir, "mixed.mp4")
-        mixVideoAndMusic(
-            sourceAssetFileDescriptor,
-            mixedVideoFile.absolutePath,
-            startPositionUs,
-            endPositionUs,
-            mixedWavFile,
-            mixAudioVideoSuccess
-        )
+//        val mixedVideoFile = File(cacheDir, "mixed.mp4")
+//        mixVideoAndMusic(
+//            sourceAssetFileDescriptor,
+//            mixedVideoFile.absolutePath,
+//            startPositionUs,
+//            endPositionUs,
+//            mixedWavFile.absolutePath,
+//            mixAudioVideoSuccess
+//        )
     }
 
     fun mixVideoAndMusic(
-        videoFileDescriptor: AssetFileDescriptor,
+        originalVideoFileDescriptor: AssetFileDescriptor,
         outputVideoPath: String,
         startTimeUs: Long,
         endTimeUs: Long,
-        wavFile: File, mixAudioVideoSuccess: () -> Unit
+        musicFilePath: String, mixAudioVideoSuccess: () -> Unit
     ) {
         val mediaMuxer = MediaMuxer(outputVideoPath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
         // Prepare video track
-        val videoExtractor = MediaExtractor()
-        videoExtractor.setDataSource(videoFileDescriptor)
-        val videoIndex: Int = getTrack(videoExtractor, false)
-        val audioIndex: Int = getTrack(videoExtractor, true)
-        val videoFormat = videoExtractor.getTrackFormat(videoIndex)
-        mediaMuxer.addTrack(videoFormat)
+        val originalVideoExtractor = MediaExtractor()
+        originalVideoExtractor.setDataSource(originalVideoFileDescriptor)
+        val originalVideoIndex: Int = getTrack(originalVideoExtractor, false)
+        val originalAudioIndex: Int = getTrack(originalVideoExtractor, true)
+        val originalVideoFormat = originalVideoExtractor.getTrackFormat(originalVideoIndex)
+        val videoTrackOfMediaMuxer = mediaMuxer.addTrack(originalVideoFormat)
+        Log.d(TAG,"mediaMuxer video track:$videoTrackOfMediaMuxer")
 
         // Prepare audio track, audioFormat of the mixed video should be the format from the original video
-        val audioFormat = videoExtractor.getTrackFormat(audioIndex)
-        val audioBitrate = audioFormat.getInteger(MediaFormat.KEY_BIT_RATE)
-        audioFormat.setString(MediaFormat.KEY_MIME, MediaFormat.MIMETYPE_AUDIO_AAC)
-        val audioIndexOfMixedVideo = mediaMuxer.addTrack(audioFormat)
+        val originalAudioFormat = originalVideoExtractor.getTrackFormat(originalAudioIndex)
+        val audioBitrate = originalAudioFormat.getInteger(MediaFormat.KEY_BIT_RATE)
+        originalAudioFormat.setString(MediaFormat.KEY_MIME, MediaFormat.MIMETYPE_AUDIO_AAC)
+        val audioTrackOfMediaMuxer = mediaMuxer.addTrack(originalAudioFormat)
+        Log.d(TAG,"mediaMuxer audio track:$audioTrackOfMediaMuxer")
+
         mediaMuxer.start()
 
-        val audioExtractor = MediaExtractor()
-        audioExtractor.setDataSource(wavFile.absolutePath)
-        val audioTrack = getTrack(audioExtractor, true)
-        audioExtractor.selectTrack(audioTrack)
-        val pcmTrackFormat = audioExtractor.getTrackFormat(audioTrack)
-        var maxBufferSize = if (pcmTrackFormat.containsKey(MediaFormat.KEY_MAX_INPUT_SIZE)) {
-            pcmTrackFormat.getInteger(MediaFormat.KEY_MAX_INPUT_SIZE)
+        val mixedAudioExtractor = MediaExtractor()
+        mixedAudioExtractor.setDataSource(musicFilePath)
+        val audioTrack = getTrack(mixedAudioExtractor, true)
+        mixedAudioExtractor.selectTrack(audioTrack)
+        val audioMediaFormat = mixedAudioExtractor.getTrackFormat(audioTrack)
+        var maxBufferSize = if (audioMediaFormat.containsKey(MediaFormat.KEY_MAX_INPUT_SIZE)) {
+            audioMediaFormat.getInteger(MediaFormat.KEY_MAX_INPUT_SIZE)
         } else {
             MAX_BUFFER_SIZE_DEFAULT
         }
@@ -104,7 +107,7 @@ object VideoProcessor {
         val encodeFormat = MediaFormat.createAudioFormat(
             MediaFormat.MIMETYPE_AUDIO_AAC, SAMPLE_RATE_DEFAULT, 2
         )
-        encodeFormat.setInteger(MediaFormat.KEY_BIT_RATE, audioBitrate) //比特率
+        encodeFormat.setInteger(MediaFormat.KEY_BIT_RATE, audioBitrate)
         encodeFormat.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC)
         encodeFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, maxBufferSize)
         val aacEncoder = MediaCodec.createEncoderByType(MediaFormat.MIMETYPE_AUDIO_AAC)
@@ -118,20 +121,20 @@ object VideoProcessor {
             // Read pcm data and put it to encoder
             val inputBufferIndex = aacEncoder.dequeueInputBuffer(DEQUEUE_ENQUE_TIME_OUT_US)
             if (inputBufferIndex >= 0) {
-                val sampleTime = audioExtractor.sampleTime
+                val sampleTime = mixedAudioExtractor.sampleTime
                 if (sampleTime < 0) {
                     // End of the stream
                     aacEncoder.queueInputBuffer(inputBufferIndex, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
                 } else {
                     // read pcm date to buffer
-                    val flags = audioExtractor.sampleFlags
-                    val size = audioExtractor.readSampleData(buffer, 0)
+                    val flags = mixedAudioExtractor.sampleFlags
+                    val size = mixedAudioExtractor.readSampleData(buffer, 0)
                     val inputBuffer = aacEncoder.getInputBuffer(inputBufferIndex)
                     inputBuffer?.clear()
                     inputBuffer?.put(buffer)
                     inputBuffer?.position(0)
                     aacEncoder.queueInputBuffer(inputBufferIndex, 0, size, sampleTime, flags)
-                    audioExtractor.advance()
+                    mixedAudioExtractor.advance()
                 }
             }
 
@@ -146,7 +149,8 @@ object VideoProcessor {
                 val encodeOutputBuffer = aacEncoder.getOutputBuffer(outputBufferIndex)
                 encodeOutputBuffer?.apply {
                     // Write the encoded aac audio date to mediaMuxer
-                    mediaMuxer.writeSampleData(audioIndexOfMixedVideo, this, bufferInfo)
+                    Log.d(TAG,"write audio to mediaMuxer")
+                    mediaMuxer.writeSampleData(audioTrackOfMediaMuxer, this, bufferInfo)
                     encodeOutputBuffer.clear()
                 }
                 aacEncoder.releaseOutputBuffer(outputBufferIndex, false)
@@ -154,23 +158,24 @@ object VideoProcessor {
             }
         }
 
-        if (audioTrack >= 0) {
-            videoExtractor.unselectTrack(audioTrack)
+        //start to write video data to mediaMuxer
+        originalVideoExtractor.selectTrack(originalVideoIndex)
+        originalVideoExtractor.seekTo(startTimeUs, MediaExtractor.SEEK_TO_PREVIOUS_SYNC)
+        maxBufferSize = if (originalVideoFormat.containsKey(MediaFormat.KEY_MAX_INPUT_SIZE)) {
+            originalVideoFormat.getInteger(MediaFormat.KEY_MAX_INPUT_SIZE)
+        } else {
+            MAX_BUFFER_SIZE_DEFAULT
         }
 
-        //start to write video date to mediaMuxer
-        videoExtractor.selectTrack(videoIndex)
-        videoExtractor.seekTo(startTimeUs, MediaExtractor.SEEK_TO_PREVIOUS_SYNC)
-        maxBufferSize = videoFormat.getInteger(MediaFormat.KEY_MAX_INPUT_SIZE)
         buffer = ByteBuffer.allocateDirect(maxBufferSize)
 
         while (true) {
-            val sampleTimeUs = videoExtractor.sampleTime
+            val sampleTimeUs = originalVideoExtractor.sampleTime
             if (sampleTimeUs == -1L) {
                 break
             }
             if (sampleTimeUs < startTimeUs) {
-                videoExtractor.advance()
+                originalVideoExtractor.advance()
                 continue
             }
             if (sampleTimeUs > endTimeUs) {
@@ -179,19 +184,19 @@ object VideoProcessor {
 
             //Set the new time
             bufferInfo.presentationTimeUs = sampleTimeUs - startTimeUs + 600
-            bufferInfo.flags = videoExtractor.sampleFlags
-            //                读取视频文件的数据  画面 数据   压缩1  未压缩2
-            bufferInfo.size = videoExtractor.readSampleData(buffer, 0)
+            bufferInfo.flags = originalVideoExtractor.sampleFlags
+            bufferInfo.size = originalVideoExtractor.readSampleData(buffer, 0)
             if (bufferInfo.size < 0) {
                 break
             }
-            mediaMuxer.writeSampleData(videoIndex, buffer, bufferInfo)
-            videoExtractor.advance()
+            Log.d(TAG,"write video to mediaMuxer")
+            mediaMuxer.writeSampleData(videoTrackOfMediaMuxer, buffer, bufferInfo)
+            originalVideoExtractor.advance()
         }
 
         try {
-            audioExtractor.release()
-            videoExtractor.release()
+            mixedAudioExtractor.release()
+            originalVideoExtractor.release()
             aacEncoder.stop()
             aacEncoder.release()
             mediaMuxer.release()
@@ -202,6 +207,7 @@ object VideoProcessor {
         }
     }
 
+    // todo mixed video is not the same with the original video
     fun mixVideoAudio(
         videoPath: String,
         audioPath: String,

@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.Button
 import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
@@ -84,7 +85,7 @@ class VideoClipActivity : AppCompatActivity() {
     private fun initVideoView() {
         val videoUri = Uri.parse(
             ContentResolver.SCHEME_ANDROID_RESOURCE + "://" + applicationContext.packageName + "/raw/"
-                    + "video_clip_original_video"
+                    + "big_buck_bunny"
         )
 
         mVideoView.setVideoURI(videoUri)
@@ -102,16 +103,25 @@ class VideoClipActivity : AppCompatActivity() {
     @RequiresApi(Build.VERSION_CODES.N)
     private fun startClipVideo() {
         Thread {
-            VideoProcessor.clipAndMixVideo(resources.openRawResourceFd(R.raw.video_clip_original_video)
+            VideoProcessor.clipAndMixVideo(
+                resources.openRawResourceFd(R.raw.big_buck_bunny)
                 , 20 * 1000000, 30 * 1000000,
-                resources.openRawResourceFd(R.raw.audio_mix_music), cacheDir
+                resources.openRawResourceFd(R.raw.beautifulday), cacheDir
             ) { startPlayNewVideo() }
         }.start()
     }
 
+    fun mixAudioVideo(view: View) {
+        val mixedVideo = File(cacheDir, "mixed.mp4")
+        val mixedAudio = File(cacheDir, "mixed.mp3")
+
+        VideoProcessor.mixVideoAndMusic(resources.openRawResourceFd(R.raw.big_buck_bunny), mixedVideo.absolutePath
+            , 20 * 1000000, 30 * 1000000, mixedAudio.absolutePath, {})
+    }
+
     private fun startPlayNewVideo() {
         runOnUiThread {
-            Toast.makeText(this,"mix audio video success",Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "mix audio video success", Toast.LENGTH_SHORT).show()
 //            mVideoView.stopPlayback()
 //            val mixedMp4File = File(cacheDir, "mixed.mp4")
 //            mVideoView.setVideoPath(mixedMp4File.absolutePath)

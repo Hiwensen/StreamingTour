@@ -54,6 +54,7 @@ class MediaExtractorActivity : AppCompatActivity() {
             , outputVideoPath = composedFile.absolutePath, mixAudioVideoSuccess = {})
     }
 
+    // todo fix can't stop MediaMuxer crash
     private fun composeVideoAudio() {
         val videoExtractor = MediaExtractor()
         val videoFile = File(this.filesDir, "videocanplay.mp4")
