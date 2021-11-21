@@ -6,11 +6,15 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import com.shaowei.streaming.audio.AudioProcessor
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.nio.ByteBuffer
 
 @RequiresApi(Build.VERSION_CODES.N)
-object VideoProcessor {
+object VideoProcessor : CoroutineScope by CoroutineScope(Dispatchers.Default) {
     private val TAG = VideoProcessor::class.java.simpleName
     private val TRACK_UNKNOWN = -1
     private val SAMPLE_TIME_OFFSET_MICRO_SECONDS = 100000 // 0.1s
@@ -21,38 +25,43 @@ object VideoProcessor {
     private val MIME_PREFIX_VIDEO = "video/"
     private val MIME_PREFIX_AUDIO = "audio/"
 
-    fun clipAndMixVideo(
+    suspend fun clipAndMixVideo(
         sourceAssetFileDescriptor: AssetFileDescriptor, startPositionUs: Long, endPositionUs: Long,
-        backgroundMusicFileDescriptor: AssetFileDescriptor, cacheDir: File, mixAudioVideoSuccess: () -> Unit
-    ) {
-        // Extract and decode original audio to PCM
-        val originalAudioPCMFile = File(cacheDir, "originalAudio.pcm")
-        AudioProcessor.decodeToPCMSync(
-            sourceAssetFileDescriptor,
-            originalAudioPCMFile.absolutePath,
-            startPositionUs,
-            endPositionUs
-        )
+        backgroundMusicFileDescriptor: AssetFileDescriptor, cacheDir: File
+    ) = withContext(Dispatchers.IO) {
+        val originalAudioPCMFile = async {
+            // Extract and decode original audio to PCM
+            val originalAudioPCMFile = File(cacheDir, "originalAudio.pcm")
+            AudioProcessor.decodeToPCMSync(
+                sourceAssetFileDescriptor,
+                originalAudioPCMFile.absolutePath,
+                startPositionUs,
+                endPositionUs
+            )
+            originalAudioPCMFile
+        }
 
-        // Decode background music to PCM
-        val backgroundMusicPCMFile = File(cacheDir, "backgroundAudio.pcm")
-        AudioProcessor.decodeToPCMSync(
-            backgroundMusicFileDescriptor,
-            backgroundMusicPCMFile.absolutePath,
-            startPositionUs,
-            endPositionUs
-        )
+        val backgroundMusicPCMFile = async { // Decode background music to PCM
+            val backgroundMusicPCMFile = File(cacheDir, "backgroundAudio.pcm")
+            AudioProcessor.decodeToPCMSync(
+                backgroundMusicFileDescriptor,
+                backgroundMusicPCMFile.absolutePath,
+                startPositionUs,
+                endPositionUs
+            )
+            backgroundMusicPCMFile
+        }
 
         // Mix original audio and background music PCM file
         val mixedPCMFile = File(cacheDir, "mixed.pcm")
         AudioProcessor.mixPCM(
-            originalAudioPCMFile.absolutePath, backgroundMusicPCMFile.absolutePath
-            , mixedPCMFile.absolutePath, 80, 20
-        )
+            originalAudioPCMFile.await().absolutePath, backgroundMusicPCMFile.await().absolutePath
+            , mixedPCMFile.absolutePath, 80, 20)
 
         // mixed pcm -> mp3
         val mixedWavFile = File(cacheDir, "mixed.mp3")
         AudioProcessor.pcmToWav(mixedPCMFile.absolutePath, mixedWavFile.absolutePath)
+
 
         // Merge mixed audio and original video
 //        val mixedVideoFile = File(cacheDir, "mixed.mp4")
@@ -66,13 +75,13 @@ object VideoProcessor {
 //        )
     }
 
-    fun mixVideoAndMusic(
+    suspend fun mixVideoAndMusic(
         originalVideoFileDescriptor: AssetFileDescriptor,
         outputVideoPath: String,
         startTimeUs: Long,
         endTimeUs: Long,
         musicFilePath: String, mixAudioVideoSuccess: () -> Unit
-    ) {
+    ) = withContext(Dispatchers.IO) {
         val mediaMuxer = MediaMuxer(outputVideoPath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
         // Prepare video track
         val originalVideoExtractor = MediaExtractor()
@@ -81,14 +90,14 @@ object VideoProcessor {
         val originalAudioIndex: Int = getTrack(originalVideoExtractor, true)
         val originalVideoFormat = originalVideoExtractor.getTrackFormat(originalVideoIndex)
         val videoTrackOfMediaMuxer = mediaMuxer.addTrack(originalVideoFormat)
-        Log.d(TAG,"mediaMuxer video track:$videoTrackOfMediaMuxer")
+        Log.d(TAG, "mediaMuxer video track:$videoTrackOfMediaMuxer")
 
         // Prepare audio track, audioFormat of the mixed video should be the format from the original video
         val originalAudioFormat = originalVideoExtractor.getTrackFormat(originalAudioIndex)
         val audioBitrate = originalAudioFormat.getInteger(MediaFormat.KEY_BIT_RATE)
         originalAudioFormat.setString(MediaFormat.KEY_MIME, MediaFormat.MIMETYPE_AUDIO_AAC)
         val audioTrackOfMediaMuxer = mediaMuxer.addTrack(originalAudioFormat)
-        Log.d(TAG,"mediaMuxer audio track:$audioTrackOfMediaMuxer")
+        Log.d(TAG, "mediaMuxer audio track:$audioTrackOfMediaMuxer")
 
         mediaMuxer.start()
 
@@ -149,7 +158,7 @@ object VideoProcessor {
                 val encodeOutputBuffer = aacEncoder.getOutputBuffer(outputBufferIndex)
                 encodeOutputBuffer?.apply {
                     // Write the encoded aac audio date to mediaMuxer
-                    Log.d(TAG,"write audio to mediaMuxer")
+                    Log.d(TAG, "write audio to mediaMuxer")
                     mediaMuxer.writeSampleData(audioTrackOfMediaMuxer, this, bufferInfo)
                     encodeOutputBuffer.clear()
                 }
@@ -189,7 +198,7 @@ object VideoProcessor {
             if (bufferInfo.size < 0) {
                 break
             }
-            Log.d(TAG,"write video to mediaMuxer")
+            Log.d(TAG, "write video to mediaMuxer")
             mediaMuxer.writeSampleData(videoTrackOfMediaMuxer, buffer, bufferInfo)
             originalVideoExtractor.advance()
         }

@@ -8,6 +8,8 @@ import android.media.MediaFormat
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -23,12 +25,12 @@ object AudioProcessor {
     private val SAMPLE_TIME_OFFSET_MICRO_SECONDS = 100000 // 0.1s
     private val SAMPLE_RATE = 44100
 
-    fun decodeToPCMSync(
+    suspend fun decodeToPCMSync(
         fileDescriptor: AssetFileDescriptor, pcmFilePath: String, startTimeUs: Long, endTimeUs: Long
-    ): Boolean {
+    ): Boolean = withContext(Dispatchers.IO) {
         if (endTimeUs < startTimeUs) {
             Log.e(TAG, "endTime should greater than startTime")
-            return false
+            return@withContext false
         }
 
         val mediaExtractor = MediaExtractor()
@@ -36,7 +38,7 @@ object AudioProcessor {
         val audioTrackIndex = getAudioTrackIndex(mediaExtractor)
         if (audioTrackIndex == TRACK_INDEX_UNFOUND) {
             Log.e(TAG, "failed to find audio track index")
-            return false
+            return@withContext false
         }
 
         mediaExtractor.selectTrack(audioTrackIndex)
@@ -105,7 +107,7 @@ object AudioProcessor {
         mediaCodec.release()
 
         Log.d(TAG, "decode pcm file success")
-        return true
+        return@withContext true
     }
 
     fun decodeToPCMAsync(

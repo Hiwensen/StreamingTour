@@ -16,10 +16,14 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.jaygoo.widget.RangeSeekBar
 import com.shaowei.streaming.R
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import java.io.File
 
 @RequiresApi(Build.VERSION_CODES.N)
-class VideoClipActivity : AppCompatActivity() {
+class VideoClipActivity : AppCompatActivity(), CoroutineScope by CoroutineScope(Dispatchers.Default) {
     private val TAG = VideoClipActivity::class.java.simpleName
     private lateinit var mVideoView: VideoView
     private lateinit var mRangeSeekBar: RangeSeekBar
@@ -82,6 +86,11 @@ class VideoClipActivity : AppCompatActivity() {
         mStartPlayNewVideo.setOnClickListener { startPlayNewVideo() }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        (this as CoroutineScope).cancel()
+    }
+
     private fun initVideoView() {
         val videoUri = Uri.parse(
             ContentResolver.SCHEME_ANDROID_RESOURCE + "://" + applicationContext.packageName + "/raw/"
@@ -102,31 +111,36 @@ class VideoClipActivity : AppCompatActivity() {
 
     @RequiresApi(Build.VERSION_CODES.N)
     private fun startClipVideo() {
-        Thread {
+        launch(Dispatchers.Main) {
+            Log.d(TAG, "start to clip video, thread name:${Thread.currentThread().name}")
             VideoProcessor.clipAndMixVideo(
                 resources.openRawResourceFd(R.raw.big_buck_bunny)
                 , 20 * 1000000, 30 * 1000000,
                 resources.openRawResourceFd(R.raw.beautifulday), cacheDir
-            ) { startPlayNewVideo() }
-        }.start()
+            )
+            startPlayNewVideo()
+        }
     }
 
     fun mixAudioVideo(view: View) {
-        val mixedVideo = File(cacheDir, "mixed.mp4")
-        val mixedAudio = File(cacheDir, "mixed.mp3")
-
-        VideoProcessor.mixVideoAndMusic(resources.openRawResourceFd(R.raw.big_buck_bunny), mixedVideo.absolutePath
-            , 20 * 1000000, 30 * 1000000, mixedAudio.absolutePath, {})
+        launch {
+            Log.d(TAG, "mixAudioVideo1, thread name:${Thread.currentThread().name}")
+            val mixedVideo = File(cacheDir, "mixed.mp4")
+            val mixedAudio = File(cacheDir, "mixed.mp3")
+            VideoProcessor.mixVideoAndMusic(resources.openRawResourceFd(R.raw.big_buck_bunny), mixedVideo.absolutePath
+                , 20 * 1000000, 30 * 1000000, mixedAudio.absolutePath, {})
+            Log.d(TAG, "mixAudioVideo2, thread name:${Thread.currentThread().name}")
+        }
     }
 
     private fun startPlayNewVideo() {
-        runOnUiThread {
-            Toast.makeText(this, "mix audio video success", Toast.LENGTH_SHORT).show()
+        Log.d(TAG, "mix audio success, thread name: ${Thread.currentThread().name}")
+        Toast.makeText(this, "mix audio video success", Toast.LENGTH_SHORT).show()
 //            mVideoView.stopPlayback()
 //            val mixedMp4File = File(cacheDir, "mixed.mp4")
 //            mVideoView.setVideoPath(mixedMp4File.absolutePath)
 //            mVideoView.start()
-        }
+
     }
 
 }
