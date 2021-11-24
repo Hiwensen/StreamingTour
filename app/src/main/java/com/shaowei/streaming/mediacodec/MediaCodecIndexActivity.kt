@@ -9,6 +9,10 @@ import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.shaowei.streaming.R
+import kotlinx.android.synthetic.main.activity_media_codec.*
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 
 private val TAG = MediaCodecIndexActivity::class.java.simpleName
 
@@ -16,12 +20,13 @@ class MediaCodecIndexActivity : AppCompatActivity() {
     private lateinit var mVideoPlayer: VideoPlayer
     private lateinit var mSurface: Surface
     private var mSurfaceReady = false
+    private val mMainScope = MainScope()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_media_codec)
 
-        findViewById<Button>(R.id.video_decode_async).setOnClickListener {
+        video_decode_async.setOnClickListener {
             if (mSurfaceReady) {
                 if (this::mVideoPlayer.isInitialized) {
                     mVideoPlayer.stop()
@@ -33,14 +38,16 @@ class MediaCodecIndexActivity : AppCompatActivity() {
             }
         }
 
-        findViewById<Button>(R.id.video_decode_sync).setOnClickListener {
+        video_decode_sync.setOnClickListener {
             if (mSurfaceReady) {
                 if (this::mVideoPlayer.isInitialized) {
                     mVideoPlayer.stop()
                 }
 
                 mVideoPlayer = VideoPlayer()
-                mVideoPlayer.playSync(R.raw.sample, mSurface, this)
+                mMainScope.launch {
+                    mVideoPlayer.playSync(R.raw.sample, mSurface, this@MediaCodecIndexActivity)
+                }
             } else {
                 Toast.makeText(this, "surface is not ready", Toast.LENGTH_SHORT).show()
             }
@@ -54,7 +61,7 @@ class MediaCodecIndexActivity : AppCompatActivity() {
 
                 //todo bugs when play big buck bunny file
                 mVideoPlayer = VideoPlayer()
-                mVideoPlayer.playMP4Video(R.raw.shariver, mSurface, this)
+                mVideoPlayer.playMP4VideoAsync(R.raw.shariver, mSurface, this)
             } else {
                 Toast.makeText(this, "surface is not ready", Toast.LENGTH_SHORT).show()
             }
@@ -89,6 +96,11 @@ class MediaCodecIndexActivity : AppCompatActivity() {
         mSurface.release()
         mVideoPlayer.stop()
         mVideoPlayer.release()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        mMainScope.cancel()
     }
 
 }

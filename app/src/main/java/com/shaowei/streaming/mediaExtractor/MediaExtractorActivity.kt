@@ -13,6 +13,9 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.shaowei.streaming.*
 import com.shaowei.streaming.video.VideoProcessor
+import kotlinx.android.synthetic.main.activity_media_extractor.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.NonCancellable.cancel
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -23,22 +26,37 @@ class MediaExtractorActivity : AppCompatActivity() {
     private val BUFFER_CAPACITY = 500 * 1024 //500kb
     private lateinit var mVideoOutputStream: FileOutputStream
     private lateinit var mAudioOutputStream: FileOutputStream
+    private val mMainScope = MainScope()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_media_extractor)
-        findViewById<Button>(R.id.extract_mp4_can_not_play).setOnClickListener { extractRawFileNPlay(R.raw.shariver) }
-
-        findViewById<Button>(R.id.extract_video_can_play).setOnClickListener {
-            extractVideoCanPlay(R.raw.shariver)
+        extract_mp4_can_not_play.setOnClickListener {
+            mMainScope.launch {
+                extractRawFileNPlay(R.raw.shariver)
+            }
         }
 
-        findViewById<Button>(R.id.extract_audio_can_play).setOnClickListener {
-            extractAudioCanPlay(R.raw.shariver)
+        extract_video_can_play.setOnClickListener {
+            mMainScope.launch {
+                extractVideoCanPlay(R.raw.shariver)
+            }
         }
 
-        findViewById<Button>(R.id.compose).setOnClickListener {
-            composeVideoAudio2()
+        extract_audio_can_play.setOnClickListener {
+            mMainScope.launch {
+                extractAudioCanPlay(R.raw.shariver)
+            }
+        }
+
+        compose.setOnClickListener {
+            mMainScope.launch {
+                val videoFile = File(filesDir, "videocanplay.mp4")
+                val audioFile = File(filesDir, "audiocanplay.wav")
+                val composedFile = File(cacheDir, "composed.mp4")
+                VideoProcessor.mixVideoAudio(videoPath = videoFile.absolutePath,audioPath = audioFile.absolutePath
+                    , outputVideoPath = composedFile.absolutePath, mixAudioVideoSuccess = {})
+            }
         }
 
         if (!(hasWriteStoragePermission(this) && hasReadStoragePermission(this))) {
@@ -46,106 +64,15 @@ class MediaExtractorActivity : AppCompatActivity() {
         }
     }
 
-    private fun composeVideoAudio2() {
-        val videoFile = File(this.filesDir, "videocanplay.mp4")
-        val audioFile = File(this.filesDir, "audiocanplay.wav")
-        val composedFile = File(cacheDir, "composed.mp4")
-        VideoProcessor.mixVideoAudio(videoPath = videoFile.absolutePath,audioPath = audioFile.absolutePath
-            , outputVideoPath = composedFile.absolutePath, mixAudioVideoSuccess = {})
-    }
-
-    // todo fix can't stop MediaMuxer crash
-    private fun composeVideoAudio() {
-        val videoExtractor = MediaExtractor()
-        val videoFile = File(this.filesDir, "videocanplay.mp4")
-        videoExtractor.setDataSource(videoFile.absolutePath)
-        val videoTrackCount = videoExtractor.trackCount
-        var frameRate = 0
-
-        var videoTrackFormat: MediaFormat? = null
-        for (i in 0 until videoTrackCount) {
-            videoTrackFormat = videoExtractor.getTrackFormat(i)
-            val formatString = videoTrackFormat.getString(MediaFormat.KEY_MIME)
-            if (formatString?.startsWith("video/") == true) {
-                videoExtractor.selectTrack(i)
-                Log.d(TAG,"compose, video track:$i")
-                frameRate = videoTrackFormat.getInteger(MediaFormat.KEY_FRAME_RATE)
-            }
-        }
-
-        val audioExtractor = MediaExtractor()
-        val audioFile = File(this.filesDir, "audiocanplay.wav")
-        audioExtractor.setDataSource(audioFile.absolutePath)
-        val audioTrackCount = audioExtractor.trackCount
-        var audioTrackFormat: MediaFormat? = null
-        for (i in 0 until audioTrackCount) {
-            audioTrackFormat = audioExtractor.getTrackFormat(i)
-            val formatString = audioTrackFormat.getString(MediaFormat.KEY_MIME)
-            if (formatString?.startsWith("audio/") == true) {
-                Log.d(TAG,"compose, audio track:$i")
-                audioExtractor.selectTrack(i)
-            }
-        }
-
-        videoTrackFormat ?: return
-        audioTrackFormat ?: return
-
-        val videoBufferInfo = MediaCodec.BufferInfo()
-        val audioBufferInfo = MediaCodec.BufferInfo()
-
-        val composeFile = File(this.filesDir, "compose.mp4")
-        val mediaMuxer = MediaMuxer(composeFile.absolutePath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
-        val writeVideoIndex = mediaMuxer.addTrack(videoTrackFormat)
-        val writeAudioIndex = mediaMuxer.addTrack(audioTrackFormat)
-        mediaMuxer.start()
-
-        val byteBuffer = ByteBuffer.allocate(BUFFER_CAPACITY)
-        while (true) {
-            // Read data from mediaExtractor
-            val readSampleData = videoExtractor.readSampleData(byteBuffer, 0)
-            if (readSampleData <= 0) {
-                break
-            }
-
-            videoBufferInfo.offset = 0
-            videoBufferInfo.size = readSampleData
-            videoBufferInfo.flags = videoExtractor.sampleFlags
-            videoBufferInfo.presentationTimeUs += 1000 * 1000 / frameRate
-
-            //Write data to mediaMuxer
-            mediaMuxer.writeSampleData(writeVideoIndex, byteBuffer, videoBufferInfo)
-            videoExtractor.advance()
-        }
-
-        while (true) {
-            // Read data from mediaExtractor
-            val readSampleData = audioExtractor.readSampleData(byteBuffer, 0)
-            if (readSampleData <= 0) {
-                break
-            }
-
-            audioBufferInfo.offset = 0
-            audioBufferInfo.size = readSampleData
-            audioBufferInfo.flags = videoExtractor.sampleFlags
-            audioBufferInfo.presentationTimeUs += 1000 * 1000 / frameRate
-
-            //Write data to mediaMuxer
-            mediaMuxer.writeSampleData(writeAudioIndex, byteBuffer, audioBufferInfo)
-            audioExtractor.advance()
-        }
-
-        videoExtractor.release()
-        audioExtractor.release()
-        mediaMuxer.stop()
-        mediaMuxer.release()
-
-        Log.d(TAG, "compose video audio end")
+    override fun onDestroy() {
+        super.onDestroy()
+        mMainScope.cancel()
     }
 
     /**
      * The extracted file lack of some head info so can't be played
      */
-    private fun extractRawFileNPlay(rawFileId: Int) {
+    private suspend fun extractRawFileNPlay(rawFileId: Int) = withContext(Dispatchers.IO) {
         // the mediaExtractor must be recreated,
         // Otherwise crash happen if extractor.setDataSource() be executed multiple times
         val extractor = MediaExtractor()
@@ -215,9 +142,9 @@ class MediaExtractorActivity : AppCompatActivity() {
         }
     }
 
-    private fun extractVideoCanPlay(rawFileId: Int) {
+    private suspend fun extractVideoCanPlay(rawFileId: Int) = withContext(Dispatchers.IO) {
         val mediaExtractor = MediaExtractor()
-        val videoFile = File(this.filesDir, "videocanplay.mp4")
+        val videoFile = File(filesDir, "videocanplay.mp4")
         var mediaMuxer: MediaMuxer? = null
 
         val rawResourceFd = resources.openRawResourceFd(rawFileId)
@@ -247,7 +174,7 @@ class MediaExtractorActivity : AppCompatActivity() {
             }
         }
 
-        mediaMuxer ?: return
+        mediaMuxer ?: return@withContext
 
         val bufferInfo = MediaCodec.BufferInfo()
         bufferInfo.presentationTimeUs = 0
@@ -280,7 +207,7 @@ class MediaExtractorActivity : AppCompatActivity() {
     /**
      *  todo the audio duration is larger than the original content duration
      */
-    private fun extractAudioCanPlay(rawFileId: Int) {
+    private suspend fun extractAudioCanPlay(rawFileId: Int) = withContext(Dispatchers.IO) {
         val mediaExtractor = MediaExtractor()
         val rawResourceFd = resources.openRawResourceFd(rawFileId)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -300,7 +227,7 @@ class MediaExtractorActivity : AppCompatActivity() {
             if (formatString?.startsWith("audio/") == true) {
                 mediaExtractor.selectTrack(i)
 
-                val audioFile = File(this.filesDir, "audiocanplay.wav")
+                val audioFile = File(filesDir, "audiocanplay.wav")
                 mediaMuxer = MediaMuxer(audioFile.absolutePath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
                 audioTrackIndex = mediaMuxer.addTrack(mediaFormat)
                 Log.d(TAG, "audio track:$audioTrackIndex, audioFilePath:${audioFile.absolutePath}")
@@ -313,7 +240,7 @@ class MediaExtractorActivity : AppCompatActivity() {
             }
         }
 
-        mediaMuxer ?: return
+        mediaMuxer ?: return@withContext
 
         val bufferInfo = MediaCodec.BufferInfo()
         bufferInfo.presentationTimeUs = 0

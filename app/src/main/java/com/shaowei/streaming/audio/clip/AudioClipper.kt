@@ -12,6 +12,8 @@ import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import com.shaowei.streaming.audio.PcmToWavUtil
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.ByteBuffer
@@ -28,10 +30,15 @@ class AudioClipper {
 
     @RequiresApi(Build.VERSION_CODES.N)
     @SuppressLint("WrongConstant")
-    fun clipSync(sourceFilePath: AssetFileDescriptor, desParentFilePath: String, startTimeUs: Long, endTimeUs: Long): Boolean {
+    suspend fun clipSync(
+        sourceFilePath: AssetFileDescriptor,
+        desParentFilePath: String,
+        startTimeUs: Long,
+        endTimeUs: Long
+    ): Boolean = withContext(Dispatchers.IO) {
         if (endTimeUs < startTimeUs) {
             Log.e(TAG, "endTime should greater than startTime")
-            return false
+            return@withContext false
         }
 
         val mediaExtractor = MediaExtractor()
@@ -39,7 +46,7 @@ class AudioClipper {
         val audioTrackIndex = getAudioTrackIndex(mediaExtractor)
         if (audioTrackIndex == AUDIO_TRACK_INDEX_UNFOUND) {
             Log.e(TAG, "failed to find audio track index")
-            return false
+            return@withContext false
         }
 
         mediaExtractor.selectTrack(audioTrackIndex)
@@ -115,12 +122,14 @@ class AudioClipper {
         ).pcmToWav(pcmFile.absolutePath, wavFile.absolutePath)
 
         Log.d(TAG, "clip audio success,file path:${wavFile.absolutePath}")
-        return true
+        return@withContext true
     }
 
     @RequiresApi(Build.VERSION_CODES.N)
-    fun clipAsync(context: Context, sourceFilePath: AssetFileDescriptor, desParentFilePath: String, startTimeUs: Long,
-                  endTimeUs: Long): Boolean {
+    fun clipAsync(
+        context: Context, sourceFilePath: AssetFileDescriptor, desParentFilePath: String, startTimeUs: Long,
+        endTimeUs: Long
+    ): Boolean {
         if (endTimeUs < startTimeUs) {
             Log.e(TAG, "endTime should greater than startTime")
             return false
@@ -174,7 +183,7 @@ class AudioClipper {
                             .ENCODING_PCM_16BIT
                     ).pcmToWav(pcmFile.absolutePath, wavFile.absolutePath)
 
-                    Toast.makeText(context,"clip video success", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "clip video success", Toast.LENGTH_SHORT).show()
                     Log.d(TAG, "clip audio success,file path:${wavFile.absolutePath}")
                 }
             }
@@ -212,8 +221,10 @@ class AudioClipper {
                             byteBuffer.get(content)
                             it.put(content)
 
-                            Log.d(TAG, "onInputBufferAvailable, index:$index, size:$size, " +
-                                        "sampleTime:${sampleTimeUs}, flags:$flags")
+                            Log.d(
+                                TAG, "onInputBufferAvailable, index:$index, size:$size, " +
+                                        "sampleTime:${sampleTimeUs}, flags:$flags"
+                            )
                             codec.queueInputBuffer(index, 0, size, sampleTimeUs, flags)
                             mediaExtractor.advance()
                         }

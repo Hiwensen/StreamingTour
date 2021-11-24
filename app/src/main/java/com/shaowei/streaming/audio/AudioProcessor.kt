@@ -227,13 +227,13 @@ object AudioProcessor {
      * @param videoVolume value is 0 ~ 100
      * @param bgMusicVolume value is 0 ~ 100
      */
-    fun mixPCM(
+    suspend fun mixPCM(
         pcm1: String,
         pcm2: String,
         mixPcm: String,
         videoVolume: Int,
         bgMusicVolume: Int
-    ) {
+    ) = withContext(Dispatchers.IO) {
         val volume1: Float = videoVolume * 1.0f / 100
         val volume2: Float = bgMusicVolume * 1.0f / 100
         val buffSize = 2048

@@ -11,7 +11,8 @@ import android.os.Build
 import android.util.Log
 import android.view.Surface
 import android.widget.Toast
-import com.shaowei.streaming.R
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStream
@@ -93,7 +94,7 @@ class VideoPlayer {
         mMediaCodec.start()
     }
 
-    fun playMP4Video(rawFileId: Int, targetSurface: Surface, context: Context) {
+    fun playMP4VideoAsync(rawFileId: Int, targetSurface: Surface, context: Context) {
         mCodecStatus = CodecStatus.WORKING
         val bytes = getVideoBytesFromMp4(context, rawFileId)
         val videoFormat = getVideoFormat(context, rawFileId)
@@ -162,7 +163,7 @@ class VideoPlayer {
      * @param rawFileId  Id of the file to be played stored at raw directory
      * @param targetSurface Surface to rend the data
      */
-    fun playSync(rawFileId: Int, targetSurface: Surface, context: Context) {
+    suspend fun playSync(rawFileId: Int, targetSurface: Surface, context: Context) = withContext(Dispatchers.IO) {
         val mediaFormat = MediaFormat.createVideoFormat(VIDEO_TYPE_H264, mContentWidth, mContentHeight)
         mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE, 15)
         try {
@@ -171,7 +172,7 @@ class VideoPlayer {
 //            mMediaCodec = MediaCodec.createDecoderByType(VIDEO_TYPE_H264)
         } catch (e: Exception) {
             Toast.makeText(context, "fail to create codec", Toast.LENGTH_SHORT).show()
-            return
+            return@withContext
         }
 
         mCodecStatus = CodecStatus.WORKING
@@ -179,7 +180,7 @@ class VideoPlayer {
         val sourceFileSize = bytes.size
         if (sourceFileSize == 0) {
             Toast.makeText(context, "fail to get srouce data", Toast.LENGTH_SHORT).show()
-            return
+            return@withContext
         }
 
         Log.d(TAG, "sourceFileSize:$sourceFileSize")
@@ -188,42 +189,40 @@ class VideoPlayer {
         mOutputFormat = mMediaCodec.outputFormat
         mMediaCodec.start()
 
-        Thread {
-            while (!mQuitPlayback) {
-                val nextFrameStartPosition =
-                    findNextFrameStartPosition(bytes, startIndex + FIND_NEXT_FRAME_OFFSET, sourceFileSize)
-                if (nextFrameStartPosition < 0) {
-                    Log.e(TAG, "fail to get next frame start position")
-                    break
-                }
-
-                if (nextFrameStartPosition >= sourceFileSize) {
-                    Log.d(TAG, "decode file end")
-                    break
-                }
-
-                // Load data into input buffer
-                val inputBufferIndex = mMediaCodec.dequeueInputBuffer(CODEC_DEQUEUE_TIMEOUT_US)
-                if (inputBufferIndex >= 0) {
-                    mMediaCodec.getInputBuffer(inputBufferIndex)?.let {
-                        it.clear()
-                        val dataSize = nextFrameStartPosition - startIndex
-                        it.put(bytes, startIndex, dataSize)
-                        mMediaCodec.queueInputBuffer(inputBufferIndex, 0, dataSize, 0, 0)
-                        startIndex = nextFrameStartPosition
-                    }
-                } else {
-                    continue
-                }
-
-                // Get output data
-                val bufferInfo = MediaCodec.BufferInfo()
-                val outputIndex = mMediaCodec.dequeueOutputBuffer(bufferInfo, CODEC_DEQUEUE_TIMEOUT_US)
-                if (outputIndex >= 0) {
-                    mMediaCodec.releaseOutputBuffer(outputIndex, true)
-                }
+        while (!mQuitPlayback) {
+            val nextFrameStartPosition =
+                findNextFrameStartPosition(bytes, startIndex + FIND_NEXT_FRAME_OFFSET, sourceFileSize)
+            if (nextFrameStartPosition < 0) {
+                Log.e(TAG, "fail to get next frame start position")
+                break
             }
-        }.start()
+
+            if (nextFrameStartPosition >= sourceFileSize) {
+                Log.d(TAG, "decode file end")
+                break
+            }
+
+            // Load data into input buffer
+            val inputBufferIndex = mMediaCodec.dequeueInputBuffer(CODEC_DEQUEUE_TIMEOUT_US)
+            if (inputBufferIndex >= 0) {
+                mMediaCodec.getInputBuffer(inputBufferIndex)?.let {
+                    it.clear()
+                    val dataSize = nextFrameStartPosition - startIndex
+                    it.put(bytes, startIndex, dataSize)
+                    mMediaCodec.queueInputBuffer(inputBufferIndex, 0, dataSize, 0, 0)
+                    startIndex = nextFrameStartPosition
+                }
+            } else {
+                continue
+            }
+
+            // Get output data
+            val bufferInfo = MediaCodec.BufferInfo()
+            val outputIndex = mMediaCodec.dequeueOutputBuffer(bufferInfo, CODEC_DEQUEUE_TIMEOUT_US)
+            if (outputIndex >= 0) {
+                mMediaCodec.releaseOutputBuffer(outputIndex, true)
+            }
+        }
     }
 
     fun pause() {
@@ -329,7 +328,6 @@ class VideoPlayer {
         return videoFormat
     }
 
-
     private fun findNextFrameStartPosition(bytes: ByteArray, start: Int, totalSize: Int): Int {
         // In the h264 stream, the separator between each frame is 0x00 00 00 01
         for (i in start until totalSize - 4) {
@@ -350,7 +348,7 @@ class VideoPlayer {
         val mediaCodecList = MediaCodecList(MediaCodecList.REGULAR_CODECS)
         val codecInfos = mediaCodecList.codecInfos
         for (codecInfo in codecInfos) {
-            Log.d("codecInfoName",codecInfo.name)
+            Log.d("codecInfoName", codecInfo.name)
         }
         return mediaCodecList.findDecoderForFormat(format)
     }

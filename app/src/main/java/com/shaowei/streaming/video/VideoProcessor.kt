@@ -6,6 +6,7 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import com.shaowei.streaming.audio.AudioProcessor
+import com.shaowei.streaming.mediaExtractor.MediaExtractorActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -56,7 +57,8 @@ object VideoProcessor : CoroutineScope by CoroutineScope(Dispatchers.Default) {
         val mixedPCMFile = File(cacheDir, "mixed.pcm")
         AudioProcessor.mixPCM(
             originalAudioPCMFile.await().absolutePath, backgroundMusicPCMFile.await().absolutePath
-            , mixedPCMFile.absolutePath, 80, 20)
+            , mixedPCMFile.absolutePath, 80, 20
+        )
 
         // mixed pcm -> mp3
         val mixedWavFile = File(cacheDir, "mixed.mp3")
@@ -217,12 +219,12 @@ object VideoProcessor : CoroutineScope by CoroutineScope(Dispatchers.Default) {
     }
 
     // todo mixed video is not the same with the original video
-    fun mixVideoAudio(
+    suspend fun mixVideoAudio(
         videoPath: String,
         audioPath: String,
         outputVideoPath: String,
         mixAudioVideoSuccess: () -> Unit
-    ) {
+    ) = withContext(Dispatchers.IO) {
         val mediaMuxer = MediaMuxer(outputVideoPath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
         // Prepare video track
         val videoExtractor = MediaExtractor()
@@ -300,7 +302,94 @@ object VideoProcessor : CoroutineScope by CoroutineScope(Dispatchers.Default) {
         }
     }
 
-    fun getTrack(mediaExtractor: MediaExtractor, audio: Boolean): Int {
+    // todo fix can't stop MediaMuxer crash
+    private fun composeVideoAudio(videoPath: String,
+                                  audioPath: String,
+                                  outputVideoPath: String) {
+        val videoExtractor = MediaExtractor()
+        videoExtractor.setDataSource(videoPath)
+        val videoTrackCount = videoExtractor.trackCount
+        var frameRate = 0
+
+        var videoTrackFormat: MediaFormat? = null
+        for (i in 0 until videoTrackCount) {
+            videoTrackFormat = videoExtractor.getTrackFormat(i)
+            val formatString = videoTrackFormat.getString(MediaFormat.KEY_MIME)
+            if (formatString?.startsWith("video/") == true) {
+                videoExtractor.selectTrack(i)
+                Log.d(TAG,"compose, video track:$i")
+                frameRate = videoTrackFormat.getInteger(MediaFormat.KEY_FRAME_RATE)
+            }
+        }
+
+        val audioExtractor = MediaExtractor()
+        audioExtractor.setDataSource(audioPath)
+        val audioTrackCount = audioExtractor.trackCount
+        var audioTrackFormat: MediaFormat? = null
+        for (i in 0 until audioTrackCount) {
+            audioTrackFormat = audioExtractor.getTrackFormat(i)
+            val formatString = audioTrackFormat.getString(MediaFormat.KEY_MIME)
+            if (formatString?.startsWith("audio/") == true) {
+                Log.d(TAG,"compose, audio track:$i")
+                audioExtractor.selectTrack(i)
+            }
+        }
+
+        videoTrackFormat ?: return
+        audioTrackFormat ?: return
+
+        val videoBufferInfo = MediaCodec.BufferInfo()
+        val audioBufferInfo = MediaCodec.BufferInfo()
+
+        val mediaMuxer = MediaMuxer(outputVideoPath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
+        val writeVideoIndex = mediaMuxer.addTrack(videoTrackFormat)
+        val writeAudioIndex = mediaMuxer.addTrack(audioTrackFormat)
+        mediaMuxer.start()
+
+        val byteBuffer = ByteBuffer.allocate(500 * 1024)
+        while (true) {
+            // Read data from mediaExtractor
+            val readSampleData = videoExtractor.readSampleData(byteBuffer, 0)
+            if (readSampleData <= 0) {
+                break
+            }
+
+            videoBufferInfo.offset = 0
+            videoBufferInfo.size = readSampleData
+            videoBufferInfo.flags = videoExtractor.sampleFlags
+            videoBufferInfo.presentationTimeUs += 1000 * 1000 / frameRate
+
+            //Write data to mediaMuxer
+            mediaMuxer.writeSampleData(writeVideoIndex, byteBuffer, videoBufferInfo)
+            videoExtractor.advance()
+        }
+
+        while (true) {
+            // Read data from mediaExtractor
+            val readSampleData = audioExtractor.readSampleData(byteBuffer, 0)
+            if (readSampleData <= 0) {
+                break
+            }
+
+            audioBufferInfo.offset = 0
+            audioBufferInfo.size = readSampleData
+            audioBufferInfo.flags = videoExtractor.sampleFlags
+            audioBufferInfo.presentationTimeUs += 1000 * 1000 / frameRate
+
+            //Write data to mediaMuxer
+            mediaMuxer.writeSampleData(writeAudioIndex, byteBuffer, audioBufferInfo)
+            audioExtractor.advance()
+        }
+
+        videoExtractor.release()
+        audioExtractor.release()
+        mediaMuxer.stop()
+        mediaMuxer.release()
+
+        Log.d(TAG, "compose video audio end")
+    }
+
+    private fun getTrack(mediaExtractor: MediaExtractor, audio: Boolean): Int {
         val trackCount = mediaExtractor.trackCount
         for (i in 0 until trackCount) {
             val trackFormat = mediaExtractor.getTrackFormat(i)
