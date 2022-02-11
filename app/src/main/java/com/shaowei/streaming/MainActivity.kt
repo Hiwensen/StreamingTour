@@ -2,6 +2,7 @@ package com.shaowei.streaming
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import com.shaowei.streaming.audio.clip.AudioClipActivity
@@ -12,6 +13,7 @@ import com.shaowei.streaming.cast.server.CastScreenServerActivity
 import com.shaowei.streaming.image.ImageActivity
 import com.shaowei.streaming.mediaExtractor.MediaExtractorActivity
 import com.shaowei.streaming.mediacodec.MediaCodecIndexActivity
+import com.shaowei.streaming.opengl.OpenGLPlayground
 import com.shaowei.streaming.video.VideoClipActivity
 
 class MainActivity : AppCompatActivity() {
@@ -47,14 +49,18 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, CastScreenServerActivity::class.java))
         }
 
-        findViewById<Button>(R.id.audio_mix).setOnClickListener{
-            startActivity(Intent(this,AudioMixActivity::class.java))
+        findViewById<Button>(R.id.audio_mix).setOnClickListener {
+            startActivity(Intent(this, AudioMixActivity::class.java))
         }
 
         findViewById<Button>(R.id.video_clip).setOnClickListener {
             startActivity(Intent(this, VideoClipActivity::class.java))
         }
 
+    }
+
+    fun startOpenGL(view: View) {
+        startActivity(Intent(this, OpenGLPlayground::class.java))
     }
 
 }

@@ -24,12 +24,12 @@ class AudioClipActivity : AppCompatActivity() {
         mFixedThreadPool.execute {
             val sourceResourceFd = resources.openRawResourceFd(R.raw.beautifulday)
             // 20s ~ 30s
-            val clipSuccess = mAudioClipper.clipSync(sourceResourceFd, filesDir.absolutePath, 20 * 1000000, 30 * 1000000)
-            if (clipSuccess) {
-                runOnUiThread {
-                    Toast.makeText(applicationContext,"clip success", Toast.LENGTH_SHORT).show()
-                }
-            }
+//            val clipSuccess = mAudioClipper.clipSync(sourceResourceFd, filesDir.absolutePath, 20 * 1000000, 30 * 1000000)
+//            if (clipSuccess) {
+//                runOnUiThread {
+//                    Toast.makeText(applicationContext,"clip success", Toast.LENGTH_SHORT).show()
+//                }
+//            }
         }
     }
 

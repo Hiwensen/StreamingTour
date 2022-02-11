@@ -56,6 +56,7 @@
         <activity android:name=".cast.server.CastScreenServerActivity" />
         <activity android:name=".audio.mix.AudioMixActivity"/>
         <activity android:name=".video.VideoClipActivity"/>
+        <activity android:name=".opengl.OpenGLPlayground"/>
 
         <service android:name=".cast.server.CaptureScreenService"
             android:enabled="true"
