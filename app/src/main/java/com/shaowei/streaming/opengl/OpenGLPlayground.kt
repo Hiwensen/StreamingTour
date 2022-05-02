@@ -9,6 +9,7 @@ import com.shaowei.streaming.R
 class OpenGLPlayground : AppCompatActivity() {
     private lateinit var mFragmentPlaceHolder: FrameLayout
     private val mTriangleFragmentTag = TriangleFragment::class.java.simpleName
+    private val mCameraFilterFragmentTag = CameraFilterFragment::class.java.simpleName
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -19,10 +20,24 @@ class OpenGLPlayground : AppCompatActivity() {
     fun drawTriangle(view: View) {
         val triangleFragment = supportFragmentManager.findFragmentByTag(mTriangleFragmentTag)
         if (triangleFragment == null) {
-            supportFragmentManager.beginTransaction().add(R.id.fragment_placeholder,TriangleFragment(),
-                mTriangleFragmentTag).commit()
+            supportFragmentManager.beginTransaction().add(
+                R.id.fragment_placeholder, TriangleFragment(),
+                mTriangleFragmentTag
+            ).commit()
         } else {
             supportFragmentManager.beginTransaction().show(triangleFragment).commit()
+        }
+    }
+
+    fun showCameraPreview(view: View) {
+        val cameraFragment = supportFragmentManager.findFragmentByTag(mCameraFilterFragmentTag)
+        if (cameraFragment == null) {
+            supportFragmentManager.beginTransaction().add(
+                R.id.fragment_placeholder, CameraFilterFragment(),
+                mCameraFilterFragmentTag
+            ).commit()
+        } else {
+            supportFragmentManager.beginTransaction().show(cameraFragment).commit()
         }
     }
 
