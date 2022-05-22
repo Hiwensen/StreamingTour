@@ -13,6 +13,7 @@ import com.shaowei.streaming.audio.mix.AudioMixActivity
 import com.shaowei.streaming.audio.record.AudioRecordActivity
 import com.shaowei.streaming.camera.CameraIndexActivity
 import com.shaowei.streaming.cast.server.CastScreenServerActivity
+import com.shaowei.streaming.ffmpeg.FFMpegActivity
 import com.shaowei.streaming.image.ImageActivity
 import com.shaowei.streaming.mediaExtractor.MediaExtractorActivity
 import com.shaowei.streaming.mediacodec.MediaCodecIndexActivity
@@ -61,25 +62,14 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, VideoClipActivity::class.java))
         }
 
-        findViewById<TextView>(R.id.ffmpeg_jni).text = stringFromJNI()
-
-    }
-
-    fun startOpenGL(view: View) {
-        startActivity(Intent(this, OpenGLPlayground::class.java))
-    }
-
-    /**
-     * A native method that is implemented by the 'streaming' native library,
-     * which is packaged with this application.
-     */
-    external fun stringFromJNI(): String
-
-    companion object {
-        // Used to load the 'ffmpegplayground' library on application startup.
-        init {
-            System.loadLibrary("streaming")
+        findViewById<Button>(R.id.opengl).setOnClickListener {
+            startActivity(Intent(this, OpenGLPlayground::class.java))
         }
+
+        findViewById<Button>(R.id.ffmpeg).setOnClickListener {
+            startActivity(Intent(this, FFMpegActivity::class.java))
+        }
+
     }
 
 }
