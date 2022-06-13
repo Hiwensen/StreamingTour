@@ -1,5 +1,6 @@
 #include <jni.h>
 #include <string>
+#include <android/log.h>
 
 extern "C" {
 #include "libavcodec/avcodec.h"
@@ -9,8 +10,11 @@ extern "C" {
 #include <libavutil/time.h>
 #include <android/native_window_jni.h>
 #include <android/native_window.h>
+#include "libswresample/swresample.h"
 }
 
+#define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR, "ffmpegDebug", __VA_ARGS__)
+#define  LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG, "ffmpegDebug", __VA_ARGS__)
 
 static AVFormatContext *avFormatContext;
 static AVCodecContext *avCodecContext;
@@ -283,4 +287,87 @@ Java_com_shaowei_streaming_ffmpeg_FFMpegActivity_playLocalVideoWithFFMpeg2(JNIEn
     avformat_free_context(avFormatContext);
     env->ReleaseStringUTFChars(url_, url);
     return -1;
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_shaowei_streaming_ffmpeg_FFMpegActivity_playAudioWithFFMpeg(JNIEnv *env, jobject thiz, jstring path) {
+    const char *input = env->GetStringUTFChars(path, 0);
+
+    AVFormatContext *pFormatCtx = avformat_alloc_context();
+    if (avformat_open_input(&pFormatCtx, input, NULL, NULL) != 0) {
+        LOGE("%s", "fail to open input file");
+        return;
+    }
+
+    if (avformat_find_stream_info(pFormatCtx, NULL) < 0) {
+        LOGE("%s", "fail to find stream info");
+        return;
+    }
+
+    // Find audio stream index
+    int audio_stream_index = -1;
+    for (int i = 0; i < pFormatCtx->nb_streams; i++) {
+        if (pFormatCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_AUDIO) {
+            LOGE("Found audio index: %d", pFormatCtx->streams[i]->codec->codec_type);
+            audio_stream_index = i;
+            break;
+        }
+    }
+
+    AVCodecContext *pCodecCtx = pFormatCtx->streams[audio_stream_index]->codec;
+    AVCodec *pCodex = avcodec_find_decoder(pCodecCtx->codec_id);
+    if (avcodec_open2(pCodecCtx, pCodex, NULL) < 0) {
+        return;
+    }
+
+    AVPacket *packet = (AVPacket *) av_malloc(sizeof(AVPacket));
+    AVFrame *frame = av_frame_alloc();
+    int out_channel_number = av_get_channel_layout_nb_channels(AV_CH_LAYOUT_STEREO);
+
+    SwrContext *swrContext = swr_alloc();
+    uint64_t out_ch_layout = AV_CH_LAYOUT_STEREO;
+    enum AVSampleFormat out_format = AV_SAMPLE_FMT_S16;
+    int out_sample_rate = pCodecCtx->sample_rate;
+
+    swr_alloc_set_opts(swrContext, out_ch_layout, out_format, out_sample_rate,
+                       pCodecCtx->channel_layout, pCodecCtx->sample_fmt,
+                       pCodecCtx->sample_rate, 0, NULL);
+
+    swr_init(swrContext);
+    uint8_t *out_buffer = (uint8_t *) av_malloc(44100 * 2);
+
+    // Call java functions by reflection
+    jclass ffmpegActivity = env->GetObjectClass(thiz);
+    jmethodID createTrack = env->GetMethodID(ffmpegActivity, "createTrack", "(II)V");
+    env->CallVoidMethod(thiz, createTrack, 44100, out_channel_number);
+
+    jmethodID playTrack = env->GetMethodID(ffmpegActivity, "playTrack", "([BI)V");
+
+    // decode audio
+    int got_frame;
+    while (av_read_frame(pFormatCtx, packet) >= 0) {
+        if (packet->stream_index == audio_stream_index) {
+            avcodec_decode_audio4(pCodecCtx, frame, &got_frame, packet);
+            if (got_frame >= 0) {
+                swr_convert(swrContext, &out_buffer, 44100 * 2,
+                            (const uint8_t **) (frame->data), frame->nb_samples);
+                int size = av_samples_get_buffer_size(NULL, out_channel_number, frame->nb_samples,
+                                                      AV_SAMPLE_FMT_S16, 1);
+                jbyteArray audio_sample_array = env->NewByteArray(size);
+                env->SetByteArrayRegion(audio_sample_array, 0, size,
+                                        reinterpret_cast<const jbyte *>(out_buffer));
+                env->CallVoidMethod(thiz, playTrack, audio_sample_array, size);
+                env->DeleteLocalRef(audio_sample_array);
+            }
+        }
+    }
+
+    // release resources
+    av_frame_free(&frame);
+    av_free(packet);
+    swr_free(&swrContext);
+    avcodec_close(pCodecCtx);
+    avformat_close_input(&pFormatCtx);
+    env->ReleaseStringUTFChars(path, input);
 }
