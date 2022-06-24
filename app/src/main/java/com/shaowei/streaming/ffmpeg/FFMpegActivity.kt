@@ -30,6 +30,11 @@ class FFMpegActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_ffmpeg)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            requestPermissions(arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), 5)
+        }
+
         findViewById<TextView>(R.id.jni_string).text = stringFromJNI()
         findViewById<SurfaceView>(R.id.ffmpeg_surface_view).run {
             mSurfaceView = this
@@ -71,7 +76,7 @@ class FFMpegActivity : AppCompatActivity() {
 
         val audioFile = File(cacheDir, "beautifulday.mp3")
 
-        findViewById<Button>(R.id.ffmpeg_play_mp3).setOnClickListener {
+        findViewById<Button>(R.id.ffmpeg_play_mp3_with_audio_track).setOnClickListener {
             if (!audioFile.exists()) {
                 Toast.makeText(this, "Can't find the audio file", Toast.LENGTH_SHORT).show()
             } else {
@@ -81,8 +86,8 @@ class FFMpegActivity : AppCompatActivity() {
             }
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            requestPermissions(arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), 5)
+        findViewById<Button>(R.id.ffmpeg_play_mp3_with_opensl).setOnClickListener {
+
         }
 
     }
