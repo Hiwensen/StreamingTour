@@ -6,6 +6,7 @@ import android.media.AudioManager
 import android.media.AudioTrack
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.Surface
 import android.view.SurfaceHolder
 import android.view.SurfaceView
@@ -20,16 +21,23 @@ import kotlinx.coroutines.launch
 import java.io.File
 
 class FFMpegActivity : AppCompatActivity() {
-    private val mUrl = "http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4"
+    private val TAG = FFMpegActivity::class.java.simpleName
+    private val mMp4Url = "http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4"
+    private val mMp3Url = "http://mpge.5nd.com/2015/2015-11-26/69708/1.mp3"
     private lateinit var mSurfaceView: SurfaceView
     private lateinit var mSurface: Surface
     private lateinit var mPlay: Button
     private lateinit var mAudioTrack: AudioTrack
-    private lateinit var audioTrack: AudioTrack
+    private val mFFMpegPlayer = FFMpegPlayer()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_ffmpeg)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            requestPermissions(arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), 5)
+        }
+
         findViewById<TextView>(R.id.jni_string).text = stringFromJNI()
         findViewById<SurfaceView>(R.id.ffmpeg_surface_view).run {
             mSurfaceView = this
@@ -71,7 +79,7 @@ class FFMpegActivity : AppCompatActivity() {
 
         val audioFile = File(cacheDir, "beautifulday.mp3")
 
-        findViewById<Button>(R.id.ffmpeg_play_mp3).setOnClickListener {
+        findViewById<Button>(R.id.ffmpeg_play_mp3_with_audio_track).setOnClickListener {
             if (!audioFile.exists()) {
                 Toast.makeText(this, "Can't find the audio file", Toast.LENGTH_SHORT).show()
             } else {
@@ -81,8 +89,20 @@ class FFMpegActivity : AppCompatActivity() {
             }
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            requestPermissions(arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), 5)
+        mFFMpegPlayer.setPrepareListener(object : PrepareListener {
+            override fun onPrepared() {
+                Log.d(TAG, "onPrepared")
+                lifecycleScope.launch {
+                    mFFMpegPlayer.start()
+                }
+
+            }
+        })
+
+        findViewById<Button>(R.id.ffmpeg_play_mp3_with_opensl).setOnClickListener {
+            lifecycleScope.launch {
+                mFFMpegPlayer.prepare(mMp3Url)
+            }
         }
 
     }
@@ -107,7 +127,6 @@ class FFMpegActivity : AppCompatActivity() {
             mAudioTrack.write(buffer, 0, length)
         }
     }
-
 
     /**
      * A native method that is implemented by the 'streaming' native library,

@@ -1,0 +1,11 @@
+
+#ifndef STREAMING_ANDROIDLOG_H
+#define STREAMING_ANDROIDLOG_H
+
+
+class AndroidLog {
+
+};
+
+
+#endif //STREAMING_ANDROIDLOG_H

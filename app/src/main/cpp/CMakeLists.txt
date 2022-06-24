@@ -10,6 +10,15 @@ cmake_minimum_required(VERSION 3.10.2)
 project("streaming")
 set(my_lib_path ${CMAKE_SOURCE_DIR}/../../../libs)
 
+#include_directories(include)
+#include_directories(soundtouch/include)
+#include_directories(soundtouch/SoundTouch)
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -L${CMAKE_SOURCE_DIR}/libs/${ANDROID_ABI}")
+#
+#message(-------------)
+#message(${CMAKE_SOURCE_DIR})
+aux_source_directory(. SOURCE)
+
 # Creates and names a library, sets it as either STATIC
 # or SHARED, and provides the relative paths to its source code.
 # You can define multiple libraries, and CMake builds them for you.
@@ -22,7 +31,7 @@ add_library( # Sets the name of the library.
         SHARED
 
         # Provides a relative path to your source file(s).
-        native-lib.cpp)
+        ${SOURCE})
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
@@ -86,10 +95,11 @@ include_directories( ${my_lib_path}/include)
 # build script, prebuilt third-party libraries, or system libraries.
 target_link_libraries( # Specifies the target library.
         streaming
-
         -landroid
         libavcodec libavfilter libavformat libavutil libswresample libswscale
 
         # Links the target library to the log library
         # included in the NDK.
-        ${log-lib})
+        ${log-lib}
+        OpenSLES
+        android)
