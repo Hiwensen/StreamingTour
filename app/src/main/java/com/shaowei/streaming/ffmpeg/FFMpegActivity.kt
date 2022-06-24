@@ -20,12 +20,13 @@ import kotlinx.coroutines.launch
 import java.io.File
 
 class FFMpegActivity : AppCompatActivity() {
-    private val mUrl = "http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4"
+    private val mMp4Url = "http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4"
+    private val mMp3Url = "http://mpge.5nd.com/2015/2015-11-26/69708/1.mp3"
     private lateinit var mSurfaceView: SurfaceView
     private lateinit var mSurface: Surface
     private lateinit var mPlay: Button
     private lateinit var mAudioTrack: AudioTrack
-    private lateinit var audioTrack: AudioTrack
+    private val mFFMpegPlayer = FFMpegPlayer()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -86,8 +87,15 @@ class FFMpegActivity : AppCompatActivity() {
             }
         }
 
-        findViewById<Button>(R.id.ffmpeg_play_mp3_with_opensl).setOnClickListener {
+        mFFMpegPlayer.setPrepareListener(object: PrepareListener{
+            override fun onPrepared() {
+                mFFMpegPlayer.start()
+            }
+        })
 
+        findViewById<Button>(R.id.ffmpeg_play_mp3_with_opensl).setOnClickListener {
+//            mFFMpegPlayer.setSource(mMp3Url)
+            mFFMpegPlayer.prepare(mMp3Url)
         }
 
     }
@@ -112,7 +120,6 @@ class FFMpegActivity : AppCompatActivity() {
             mAudioTrack.write(buffer, 0, length)
         }
     }
-
 
     /**
      * A native method that is implemented by the 'streaming' native library,

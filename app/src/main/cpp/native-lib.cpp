@@ -371,3 +371,15 @@ Java_com_shaowei_streaming_ffmpeg_FFMpegActivity_playAudioWithFFMpeg(JNIEnv *env
     avformat_close_input(&pFormatCtx);
     env->ReleaseStringUTFChars(path, input);
 }
+
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_shaowei_streaming_ffmpeg_FFMpegPlayer_nativePrepare(JNIEnv *env, jobject thiz, jstring m_uri) {
+
+}
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_shaowei_streaming_ffmpeg_FFMpegPlayer_nativeStart(JNIEnv *env, jobject thiz) {
+
+}
