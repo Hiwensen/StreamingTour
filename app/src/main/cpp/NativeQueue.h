@@ -1,0 +1,11 @@
+
+#ifndef STREAMING_NATIVEQUEUE_H
+#define STREAMING_NATIVEQUEUE_H
+
+
+class NativeQueue {
+
+};
+
+
+#endif //STREAMING_NATIVEQUEUE_H

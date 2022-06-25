@@ -10,13 +10,13 @@ cmake_minimum_required(VERSION 3.10.2)
 project("streaming")
 set(my_lib_path ${CMAKE_SOURCE_DIR}/../../../libs)
 
-include_directories(include)
-include_directories(soundtouch/include)
-include_directories(soundtouch/SoundTouch)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -L${CMAKE_SOURCE_DIR}/libs/${ANDROID_ABI}")
-
-message(-------------)
-message(${CMAKE_SOURCE_DIR})
+#include_directories(include)
+#include_directories(soundtouch/include)
+#include_directories(soundtouch/SoundTouch)
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -L${CMAKE_SOURCE_DIR}/libs/${ANDROID_ABI}")
+#
+#message(-------------)
+#message(${CMAKE_SOURCE_DIR})
 aux_source_directory(. SOURCE)
 
 # Creates and names a library, sets it as either STATIC
@@ -31,7 +31,7 @@ add_library( # Sets the name of the library.
         SHARED
 
         # Provides a relative path to your source file(s).
-        native-lib.cpp)
+        ${SOURCE})
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by

@@ -1,6 +1,9 @@
 #include <jni.h>
 #include <string>
 #include <android/log.h>
+#include "NativeCallJava.h"
+#include "FFMpegPlayer.h"
+#include "PlayerStatus.h"
 
 extern "C" {
 #include "libavcodec/avcodec.h"
@@ -14,7 +17,6 @@ extern "C" {
 }
 
 #define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR, "ffmpegDebug", __VA_ARGS__)
-#define  LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG, "ffmpegDebug", __VA_ARGS__)
 
 static AVFormatContext *avFormatContext;
 static AVCodecContext *avCodecContext;
@@ -27,6 +29,10 @@ static AVFrame *avFrame, *rgbFrame;
 struct SwsContext *swsContext;
 uint8_t *outBuffer;
 
+_JavaVM *javaVM = NULL;
+NativeCallJava *callJava = NULL;
+FFMpegPlayer *ffMpegPlayer = NULL;
+PlayerStatus *playerStatus = NULL;
 
 extern "C"
 JNIEXPORT jstring JNICALL
@@ -375,7 +381,17 @@ Java_com_shaowei_streaming_ffmpeg_FFMpegActivity_playAudioWithFFMpeg(JNIEnv *env
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_shaowei_streaming_ffmpeg_FFMpegPlayer_nativePrepare(JNIEnv *env, jobject thiz, jstring m_uri) {
+Java_com_shaowei_streaming_ffmpeg_FFMpegPlayer_nativePrepare(JNIEnv *env, jobject instance, jstring m_uri) {
+    const char *source = env->GetStringUTFChars(m_uri, 0);
+
+    if (ffMpegPlayer == NULL) {
+        if (callJava == NULL) {
+            callJava = new NativeCallJava(javaVM, env, instance);
+        }
+        playerStatus = new PlayerStatus();
+        ffMpegPlayer = new FFMpegPlayer(playerStatus, callJava, source);
+        ffMpegPlayer->prepare();
+    }
 
 }
 extern "C"

@@ -1,0 +1,11 @@
+
+#ifndef STREAMING_OPENSLAUDIO_H
+#define STREAMING_OPENSLAUDIO_H
+
+
+class OpenslAudio {
+
+};
+
+
+#endif //STREAMING_OPENSLAUDIO_H
