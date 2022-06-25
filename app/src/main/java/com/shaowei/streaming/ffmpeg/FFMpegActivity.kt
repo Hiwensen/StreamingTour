@@ -6,6 +6,7 @@ import android.media.AudioManager
 import android.media.AudioTrack
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.Surface
 import android.view.SurfaceHolder
 import android.view.SurfaceView
@@ -20,6 +21,7 @@ import kotlinx.coroutines.launch
 import java.io.File
 
 class FFMpegActivity : AppCompatActivity() {
+    private val TAG = FFMpegActivity::class.java.simpleName
     private val mMp4Url = "http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4"
     private val mMp3Url = "http://mpge.5nd.com/2015/2015-11-26/69708/1.mp3"
     private lateinit var mSurfaceView: SurfaceView
@@ -87,15 +89,20 @@ class FFMpegActivity : AppCompatActivity() {
             }
         }
 
-        mFFMpegPlayer.setPrepareListener(object: PrepareListener{
+        mFFMpegPlayer.setPrepareListener(object : PrepareListener {
             override fun onPrepared() {
-                mFFMpegPlayer.start()
+                Log.d(TAG, "onPrepared")
+                lifecycleScope.launch {
+                    mFFMpegPlayer.start()
+                }
+
             }
         })
 
         findViewById<Button>(R.id.ffmpeg_play_mp3_with_opensl).setOnClickListener {
-//            mFFMpegPlayer.setSource(mMp3Url)
-            mFFMpegPlayer.prepare(mMp3Url)
+            lifecycleScope.launch {
+                mFFMpegPlayer.prepare(mMp3Url)
+            }
         }
 
     }

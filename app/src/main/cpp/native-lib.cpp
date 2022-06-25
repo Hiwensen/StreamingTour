@@ -392,10 +392,12 @@ Java_com_shaowei_streaming_ffmpeg_FFMpegPlayer_nativePrepare(JNIEnv *env, jobjec
         ffMpegPlayer = new FFMpegPlayer(playerStatus, callJava, source);
         ffMpegPlayer->prepare();
     }
-
 }
+
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_shaowei_streaming_ffmpeg_FFMpegPlayer_nativeStart(JNIEnv *env, jobject thiz) {
-
+    if (ffMpegPlayer != NULL) {
+        ffMpegPlayer->startPlay();
+    }
 }
