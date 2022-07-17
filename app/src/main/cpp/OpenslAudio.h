@@ -8,6 +8,7 @@
 extern "C"
 {
 #include "libavcodec/avcodec.h"
+#include "libavcodec/packet.h"
 #include <libswresample/swresample.h>
 #include <SLES/OpenSLES.h>
 #include <SLES/OpenSLES_Android.h>

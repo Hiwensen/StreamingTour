@@ -4,7 +4,6 @@
 
 
 #include <cstdio>
-#include <libavformat/avformat.h>
 #include "PlayerStatus.h"
 #include "NativeCallJava.h"
 #include "OpenslAudio.h"

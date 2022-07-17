@@ -11,8 +11,6 @@ project("streaming")
 set(my_lib_path ${CMAKE_SOURCE_DIR}/../../../libs)
 
 #include_directories(include)
-#include_directories(soundtouch/include)
-#include_directories(soundtouch/SoundTouch)
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -L${CMAKE_SOURCE_DIR}/libs/${ANDROID_ABI}")
 #
 #message(-------------)

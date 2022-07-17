@@ -1,9 +1,3 @@
-#include <jni.h>
-#include <string>
-#include <android/log.h>
-#include "NativeCallJava.h"
-#include "FFMpegPlayer.h"
-#include "PlayerStatus.h"
 
 extern "C" {
 #include "libavcodec/avcodec.h"
@@ -15,6 +9,13 @@ extern "C" {
 #include <android/native_window.h>
 #include "libswresample/swresample.h"
 }
+
+#include <jni.h>
+#include <string>
+#include <android/log.h>
+#include "NativeCallJava.h"
+#include "FFMpegPlayer.h"
+#include "PlayerStatus.h"
 
 #define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR, "ffmpegDebug", __VA_ARGS__)
 
