@@ -10,11 +10,11 @@ apply plugin: "androidx.navigation.safeargs"
 
 
 android {
-    compileSdkVersion 29
+    compileSdkVersion 33
     defaultConfig {
         applicationId "com.shaowei.streaming"
         minSdkVersion 21
-        targetSdkVersion 29
+        targetSdkVersion 33
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -106,6 +106,9 @@ dependencies {
     implementation "org.java-websocket:Java-WebSocket:1.4.0"
 
     implementation 'com.github.Jay-Goo:RangeSeekBar:v1.1.0'
+
+    //exoplayer
+    implementation 'com.google.android.exoplayer:exoplayer:2.16.1'
 
     // Unit testing
     testImplementation 'androidx.test.ext:junit:1.1.1'
