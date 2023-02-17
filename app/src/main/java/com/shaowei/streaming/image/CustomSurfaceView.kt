@@ -40,14 +40,14 @@ class CustomSurfaceView : SurfaceView, SurfaceHolder.Callback {
         mPaint.isAntiAlias = true
     }
 
-    override fun surfaceCreated(surfaceHolder: SurfaceHolder?) {
+    override fun surfaceCreated(surfaceHolder: SurfaceHolder) {
         drawImage()
     }
 
-    override fun surfaceChanged(p0: SurfaceHolder?, p1: Int, p2: Int, p3: Int) {
+    override fun surfaceChanged(p0: SurfaceHolder, p1: Int, p2: Int, p3: Int) {
     }
 
-    override fun surfaceDestroyed(p0: SurfaceHolder?) {
+    override fun surfaceDestroyed(p0: SurfaceHolder) {
     }
 
     private fun drawImage() {

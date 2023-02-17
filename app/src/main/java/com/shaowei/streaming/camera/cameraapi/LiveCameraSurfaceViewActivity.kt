@@ -34,7 +34,7 @@ class LiveCameraSurfaceViewActivity :Activity(){
 
         mSurfaceView.holder.addCallback(object :SurfaceHolder.Callback{
             override fun surfaceChanged(
-                holder: SurfaceHolder?,
+                holder: SurfaceHolder,
                 format: Int,
                 width: Int,
                 height: Int

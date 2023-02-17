@@ -30,15 +30,15 @@ class ImageDrawer(private val context: Context) {
         surfaceHolder.setFormat(PixelFormat.TRANSPARENT)
 
         surfaceHolder.addCallback(object : SurfaceHolder.Callback {
-            override fun surfaceChanged(p0: SurfaceHolder?, p1: Int, p2: Int, p3: Int) {
+            override fun surfaceChanged(p0: SurfaceHolder, p1: Int, p2: Int, p3: Int) {
 
             }
 
-            override fun surfaceDestroyed(surfaceHolder: SurfaceHolder?) {
+            override fun surfaceDestroyed(surfaceHolder: SurfaceHolder) {
 
             }
 
-            override fun surfaceCreated(surfaceHolder: SurfaceHolder?) {
+            override fun surfaceCreated(surfaceHolder: SurfaceHolder) {
                 if (surfaceHolder == null) {
                     return
                 }
@@ -62,14 +62,14 @@ class ImageDrawer(private val context: Context) {
         val matrix = Matrix()
 
         textureView.surfaceTextureListener = object : SurfaceTextureListener{
-            override fun onSurfaceTextureSizeChanged(p0: SurfaceTexture?, p1: Int, p2: Int) {
+            override fun onSurfaceTextureSizeChanged(p0: SurfaceTexture, p1: Int, p2: Int) {
 
             }
 
-            override fun onSurfaceTextureUpdated(p0: SurfaceTexture?) {
+            override fun onSurfaceTextureUpdated(p0: SurfaceTexture) {
             }
 
-            override fun onSurfaceTextureDestroyed(p0: SurfaceTexture?): Boolean {
+            override fun onSurfaceTextureDestroyed(p0: SurfaceTexture): Boolean {
                 return true
             }
 
@@ -81,9 +81,10 @@ class ImageDrawer(private val context: Context) {
 
                 val canvas = textureView.lockCanvas()
                 matrix.setScale(0.5f,0.5f)
-                canvas.drawBitmap(getAssetsBitmap(), matrix, paint)
-
-                textureView.unlockCanvasAndPost(canvas)
+                canvas?.let {
+                    it.drawBitmap(getAssetsBitmap(), matrix, paint)
+                    textureView.unlockCanvasAndPost(it)
+                }
             }
         }
     }

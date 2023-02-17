@@ -69,11 +69,11 @@ class MediaCodecIndexActivity : AppCompatActivity() {
 
         val surfaceView = findViewById<SurfaceView>(R.id.surface_view)
         surfaceView.holder.addCallback(object : SurfaceHolder.Callback {
-            override fun surfaceChanged(holder: SurfaceHolder?, format: Int, width: Int, height: Int) {
+            override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
                 Log.d(TAG, "surfaceChanged")
             }
 
-            override fun surfaceDestroyed(holder: SurfaceHolder?) {
+            override fun surfaceDestroyed(holder: SurfaceHolder) {
                 Log.d(TAG, "surfaceDestroyed")
             }
 

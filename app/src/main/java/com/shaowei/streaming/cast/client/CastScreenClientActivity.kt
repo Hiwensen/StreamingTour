@@ -44,9 +44,9 @@ class CastScreenClientActivity : AppCompatActivity() {
         setContentView(R.layout.activity_cast_client)
         val surfaceView = findViewById<SurfaceView>(R.id.cast_client_surface)
         surfaceView.holder.addCallback(object : SurfaceHolder.Callback {
-            override fun surfaceChanged(holder: SurfaceHolder?, format: Int, width: Int, height: Int) = Unit
+            override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) = Unit
 
-            override fun surfaceDestroyed(holder: SurfaceHolder?) = Unit
+            override fun surfaceDestroyed(holder: SurfaceHolder) = Unit
 
             override fun surfaceCreated(holder: SurfaceHolder) {
                 mSurface = holder.surface

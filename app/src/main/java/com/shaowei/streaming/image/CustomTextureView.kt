@@ -28,17 +28,17 @@ class CustomTextureView :TextureView,TextureView.SurfaceTextureListener{
         surfaceTextureListener = this
     }
 
-    override fun onSurfaceTextureSizeChanged(p0: SurfaceTexture?, p1: Int, p2: Int) {
+    override fun onSurfaceTextureSizeChanged(p0: SurfaceTexture, p1: Int, p2: Int) {
     }
 
-    override fun onSurfaceTextureUpdated(p0: SurfaceTexture?) {
+    override fun onSurfaceTextureUpdated(p0: SurfaceTexture) {
     }
 
-    override fun onSurfaceTextureDestroyed(p0: SurfaceTexture?): Boolean {
+    override fun onSurfaceTextureDestroyed(p0: SurfaceTexture): Boolean {
         return true
     }
 
-    override fun onSurfaceTextureAvailable(p0: SurfaceTexture?, p1: Int, p2: Int) {
+    override fun onSurfaceTextureAvailable(p0: SurfaceTexture, p1: Int, p2: Int) {
         val paint = Paint()
         paint.isAntiAlias = true
         paint.style = Paint.Style.STROKE
@@ -46,9 +46,10 @@ class CustomTextureView :TextureView,TextureView.SurfaceTextureListener{
 
         val canvas = lockCanvas()
         mMatrix.setScale(0.5f,0.5f)
-        canvas.drawBitmap(getAssetsBitmap(), mMatrix, paint)
-
-        unlockCanvasAndPost(canvas)
+        canvas?.drawBitmap(getAssetsBitmap(), mMatrix, paint)
+        canvas?.let {
+            unlockCanvasAndPost(it)
+        }
     }
 
     private fun getAssetsBitmap(): Bitmap {

@@ -29,7 +29,7 @@ class CaptureScreenService : Service() {
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
         createNotificationChannel()
         mResultCode = intent.getIntExtra("code", -1)
-        mResultData = intent.getParcelableExtra("data")
+        mResultData = intent.getParcelableExtra("data")!!
         mMediaProjectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
 
         Handler().postDelayed({

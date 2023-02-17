@@ -46,20 +46,20 @@ class CameraActivity : AppCompatActivity(), TextureView.SurfaceTextureListener {
         }
     }
 
-    override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture?, width: Int, height: Int) {
+    override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) {
         // Ignored, Camera does all the work for us
         Log.e(TAG, "onSurfaceTextureSizeChanged")
 
     }
 
-    override fun onSurfaceTextureUpdated(surface: SurfaceTexture?) {
+    override fun onSurfaceTextureUpdated(surface: SurfaceTexture) {
         // Invoked every time there's a new Camera preview frame
         //Log.d(TAG, "updated, ts=" + surface.getTimestamp());
         Log.e(TAG, "onSurfaceTextureUpdated")
 
     }
 
-    override fun onSurfaceTextureDestroyed(surface: SurfaceTexture?): Boolean {
+    override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
         Log.e(TAG, "onSurfaceTextureDestroyed")
         mCamera?.stopPreview()
         mCamera?.release()

@@ -120,11 +120,11 @@ class Camera2Fragment : Fragment() {
         viewFinder = view.findViewById(R.id.view_finder)
 
         viewFinder.holder.addCallback(object : SurfaceHolder.Callback {
-            override fun surfaceChanged(holder: SurfaceHolder?, format: Int, width: Int, height: Int) = Unit
+            override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) = Unit
 
-            override fun surfaceDestroyed(holder: SurfaceHolder?) = Unit
+            override fun surfaceDestroyed(holder: SurfaceHolder) = Unit
 
-            override fun surfaceCreated(holder: SurfaceHolder?) {
+            override fun surfaceCreated(holder: SurfaceHolder) {
                 val previewOutputSize =
                     getPreviewOutputSize(viewFinder.display, characteristics, SurfaceHolder::class.java)
                 Log.d(TAG, "View finder size:${viewFinder.width} x ${viewFinder.height}")
