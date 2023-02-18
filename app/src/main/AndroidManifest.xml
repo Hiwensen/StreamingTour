@@ -5,8 +5,8 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CAMERA" />
 
     <!--    used by MediaProjection-->
@@ -22,8 +22,10 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_streaming"
         android:supportsRtl="true"
+        android:usesCleartextTraffic="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity"
+        <activity
+            android:name=".exoplayer.ExoPlayerActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -44,7 +46,7 @@
 
         <activity android:name=".image.ImageActivity" />
         <activity android:name=".audio.record.AudioRecordActivity" />
-        <activity android:name=".audio.clip.AudioClipActivity"/>
+        <activity android:name=".audio.clip.AudioClipActivity" />
         <activity android:name=".camera.CameraIndexActivity" />
         <activity android:name=".camera.CameraIntentActivity" />
         <activity android:name=".camera.camerax.CameraXSimpleActivity" />
@@ -57,14 +59,15 @@
         <activity android:name=".mediaMuxer.MediaMuxerActivity" />
         <activity android:name=".mediacodec.MediaCodecIndexActivity" />
         <activity android:name=".cast.server.CastScreenServerActivity" />
-        <activity android:name=".audio.mix.AudioMixActivity"/>
-        <activity android:name=".video.VideoClipActivity"/>
-        <activity android:name=".opengl.OpenGLPlayground"/>
-        <activity android:name=".ffmpeg.FFMpegActivity"/>
+        <activity android:name=".audio.mix.AudioMixActivity" />
+        <activity android:name=".video.VideoClipActivity" />
+        <activity android:name=".opengl.OpenGLPlayground" />
+        <activity android:name=".ffmpeg.FFMpegActivity" />
 
-        <service android:name=".cast.server.CaptureScreenService"
+        <service
+            android:name=".cast.server.CaptureScreenService"
             android:enabled="true"
-            android:foregroundServiceType="mediaProjection"/>
+            android:foregroundServiceType="mediaProjection" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
