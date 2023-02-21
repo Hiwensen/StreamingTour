@@ -5,7 +5,6 @@
 #include <android/log.h>
 #define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR, "ffmpegDebug", __VA_ARGS__)
 
-
 OpenslAudio::OpenslAudio(PlayerStatus *playstatus, int sample_rate) {
     this->playstatus = playstatus;
     this->sample_rate = sample_rate;

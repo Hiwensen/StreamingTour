@@ -3,13 +3,13 @@
 #define STREAMING_NATIVEQUEUE_H
 
 #include "queue"
-#include <libavcodec/packet.h>
 #include <cstdio>
 #include "AndroidLog.h"
 #include "PlayerStatus.h"
 
 extern "C" {
 #include "libavcodec/avcodec.h"
+#include <libavcodec/packet.h>
 }
 
 class NativeQueue {

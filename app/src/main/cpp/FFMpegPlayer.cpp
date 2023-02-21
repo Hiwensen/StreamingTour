@@ -1,3 +1,6 @@
+extern "C" {
+#include "libavcodec/avcodec.h"
+}
 
 #include <syslog.h>
 #include "FFMpegPlayer.h"
