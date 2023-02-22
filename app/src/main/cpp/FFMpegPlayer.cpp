@@ -27,20 +27,20 @@ void FFMpegPlayer::prepare() {
 
 void FFMpegPlayer::decodeDataWithNewThread() {
 //    av_register_all();
-    avformat_network_init();
-    pFormatCtx = avformat_alloc_context();
-    if (avformat_open_input(&pFormatCtx, url, NULL, NULL) != 0) {
-        if (LOG_DEBUG) {
-            LOGE("can not open url :%s", url);
-        }
-        return;
-    }
-    if (avformat_find_stream_info(pFormatCtx, NULL) < 0) {
-        if (LOG_DEBUG) {
-            LOGE("can not find streams from %s", url);
-        }
-        return;
-    }
+//    avformat_network_init();
+//    pFormatCtx = avformat_alloc_context();
+//    if (avformat_open_input(&pFormatCtx, url, NULL, NULL) != 0) {
+//        if (LOG_DEBUG) {
+//            LOGE("can not open url :%s", url);
+//        }
+//        return;
+//    }
+//    if (avformat_find_stream_info(pFormatCtx, NULL) < 0) {
+//        if (LOG_DEBUG) {
+//            LOGE("can not find streams from %s", url);
+//        }
+//        return;
+//    }
     for (int i = 0; i < pFormatCtx->nb_streams; i++) {
         if (pFormatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
             if (audio == NULL) {
@@ -96,34 +96,34 @@ void FFMpegPlayer::startPlay() {
 
     while (playstatus != NULL && !playstatus->exit) {
         AVPacket *avPacket = av_packet_alloc();
-        if (av_read_frame(pFormatCtx, avPacket) == 0) {
-            if (avPacket->stream_index == audio->streamIndex) {
-                //解码操作
-                count++;
-                if (LOG_DEBUG) {
-                    LOGE("解码第 %d 帧", count);
-                }
-                audio->queue->putAvpacket(avPacket);
+//        if (av_read_frame(pFormatCtx, avPacket) == 0) {
+//            if (avPacket->stream_index == audio->streamIndex) {
+//                //decode
+//                count++;
+//                if (LOG_DEBUG) {
+//                    LOGE("decode frame: %d ", count);
+//                }
+//                audio->queue->putAvpacket(avPacket);
+//            } else {
+//                av_packet_free(&avPacket);
+//                av_free(avPacket);
+//            }
+//        } else {
+        av_packet_free(&avPacket);
+        av_free(avPacket);
+        while (playstatus != NULL && !playstatus->exit) {
+            if (audio->queue->getQueueSize() > 0) {
+                continue;
             } else {
-                av_packet_free(&avPacket);
-                av_free(avPacket);
-            }
-        } else {
-            av_packet_free(&avPacket);
-            av_free(avPacket);
-            while (playstatus != NULL && !playstatus->exit) {
-                if (audio->queue->getQueueSize() > 0) {
-                    continue;
-                } else {
-                    playstatus->exit = true;
-                    break;
-                }
+                playstatus->exit = true;
+                break;
             }
         }
     }
+//    }
 
     if (LOG_DEBUG) {
-        LOGD("解码完成");
+        LOGD("decode complete");
     }
 
 }
